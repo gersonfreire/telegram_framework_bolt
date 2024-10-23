@@ -1,0 +1,13 @@
+bot:
+  name: "MyTelegramBot"
+  description: "A powerful and extensible Telegram bot framework"
+  commands:
+    start:
+      description: "Start the bot"
+      response: "👋 Welcome! I'm here to help you. Use /help to see available commands."
+    help:
+      description: "Show available commands"
+      response: "Available commands:\n{commands}"
+    settings:
+      description: "Manage bot settings"
+      response: "⚙️ Current Settings:\n{settings}"
