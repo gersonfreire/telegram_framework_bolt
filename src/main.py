@@ -7,9 +7,9 @@ def main():
     load_dotenv()
     
     # Get bot token from environment
-    bot_token = os.getenv("BOT_TOKEN")
+    bot_token = os.getenv("DEFAULT_BOT_TOKEN")
     if not bot_token:
-        raise ValueError("BOT_TOKEN not found in environment variables")
+        raise ValueError("DEFAULT_BOT_TOKEN not found in environment variables")
 
     # Initialize and run the bot
     bot = TelegramBotFramework(bot_token)

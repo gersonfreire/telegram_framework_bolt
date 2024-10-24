@@ -10,7 +10,7 @@ from .handlers import CommandHandler
 from .settings import Settings
 
 class TelegramBotFramework:
-    def __init__(self, token: str, config_path: str = "config.yml"):
+    def __init__(self, token: str, config_path: str = f".config.yml"):
         self.token = token
         self.config_path = Path(config_path)
         self.settings = Settings()
