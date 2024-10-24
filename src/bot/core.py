@@ -11,8 +11,10 @@ from .handlers import CommandHandler
 from .settings import Settings
 
 class TelegramBotFramework:
-    def __init__(self, token: str, config_path: str = f".{os.sep}config.yml"):
+    def __init__(self, token: str, config_path: str = "config.yml"):
         self.token = token
+        script_dir = Path(__file__).parent
+        config_path = script_dir / config_path
         self.config_path = Path(config_path)
         self.settings = Settings()
         self.commands: Dict[str, CommandHandler] = {}
