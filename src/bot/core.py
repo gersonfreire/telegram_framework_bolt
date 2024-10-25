@@ -10,6 +10,17 @@ from telegram.ext import Application, CommandHandler as TelegramCommandHandler, 
 from .handlers import CommandHandler
 from .settings import Settings
 
+# TODOs: 
+# Embed persistence to the bot framework
+# Embed the settings into the bot framework
+# Add a method to change settings
+# Add a command to display the settings
+# Add a command to stop the bot
+# embed the logging into the bot framework
+# Add type hints to the class methods
+# Add docstrings to the class methods
+
+
 class TelegramBotFramework:
     def __init__(self, token: str, config_path: str = "config.yml"):
         self.token = token
