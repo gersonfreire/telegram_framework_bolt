@@ -1,4 +1,6 @@
 bot:
+  admin_users:
+    - 123456789
   name: "MyTelegramBot"
   description: "A powerful and extensible Telegram bot framework"
   commands:
