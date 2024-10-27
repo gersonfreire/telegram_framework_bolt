@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import asyncio
 import logging
 import os
 from pathlib import Path
@@ -77,13 +78,27 @@ class TelegramBotFramework:
         settings_str = self.settings.display()
         await update.message.reply_text(f"⚙️ Bot Settings:\n{settings_str}")
 
+    async def post_init(self, app: Application) -> None:
+        self.logger.info("Bot post-initialization complete!")
+
     def run(self) -> None:
-        persistence = PicklePersistence(filepath='bot_data')
-        app = Application.builder().token(self.token).persistence(persistence).build()
+        app = Application.builder().token(self.token).build()
+
+        async def get_bot_username():
+            bot = await app.bot.get_me()
+            return bot.username
+
+        # bot_username = app.run(get_bot_username())
+        bot_username = 'your_bot_name'
+        persistence = PicklePersistence(filepath=f'{bot_username}_bot_data', update_interval=5)
+
+        app = Application.builder().token(self.token).persistence(persistence).post_init(post_init=self.post_init).build()
 
         # Register command handlers
         for cmd_name in self.commands:
             app.add_handler(TelegramCommandHandler(cmd_name, self.handle_command))
 
         self.logger.info("Bot started successfully!")
+        
+        # Call post_init after initializing the bot
         app.run_polling()
