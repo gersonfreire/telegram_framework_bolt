@@ -8,7 +8,7 @@ from typing import Dict, Optional
 
 import yaml
 from telegram import Update
-from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes
+from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes, PicklePersistence
 
 from .handlers import CommandHandler
 from .settings import Settings
@@ -32,6 +32,7 @@ class TelegramBotFramework:
         self.config_path = Path(config_path)
         self.settings = Settings()
         self.commands: Dict[str, CommandHandler] = {}
+        self.logger = logging.getLogger(__name__)
         
         self._load_config()
         self._setup_logging()
@@ -77,7 +78,8 @@ class TelegramBotFramework:
         await update.message.reply_text(f"⚙️ Bot Settings:\n{settings_str}")
 
     def run(self) -> None:
-        app = Application.builder().token(self.token).build()
+        persistence = PicklePersistence(filepath='bot_data')
+        app = Application.builder().token(self.token).persistence(persistence).build()
 
         # Register command handlers
         for cmd_name in self.commands:
