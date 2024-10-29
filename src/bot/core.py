@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import asyncio
 import logging
 import os
 from pathlib import Path
@@ -8,7 +9,7 @@ from typing import Dict, Optional
 
 import yaml
 from telegram import Update
-from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes
+from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes, PicklePersistence
 
 from .handlers import CommandHandler
 from .settings import Settings
@@ -32,6 +33,7 @@ class TelegramBotFramework:
         self.config_path = Path(config_path)
         self.settings = Settings()
         self.commands: Dict[str, CommandHandler] = {}
+        self.logger = logging.getLogger(__name__)
         
         self._load_config()
         self._setup_logging()
@@ -77,12 +79,33 @@ class TelegramBotFramework:
         settings_str = self.settings.display()
         await update.message.reply_text(f"⚙️ Bot Settings:\n{settings_str}")
 
+    async def post_init(self, app: Application) -> None:
+        self.logger.info("Bot post-initialization complete!")
+        admin_users = self.config['bot'].get('admin_users', [])
+        for admin_id in admin_users:
+            try:
+                await app.bot.send_message(chat_id=admin_id, text="Bot post-initialization complete!")
+            except Exception as e:
+                self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
+
     def run(self) -> None:
         app = Application.builder().token(self.token).build()
+
+        async def get_bot_username():
+            bot = await app.bot.get_me()
+            return bot.username
+
+        # bot_username = app.run(get_bot_username())
+        bot_username = 'your_bot_name'
+        persistence = PicklePersistence(filepath=f'{bot_username}_bot_data', update_interval=5)
+
+        app = Application.builder().token(self.token).persistence(persistence).post_init(post_init=self.post_init).build()
 
         # Register command handlers
         for cmd_name in self.commands:
             app.add_handler(TelegramCommandHandler(cmd_name, self.handle_command))
 
         self.logger.info("Bot started successfully!")
+        
+        # Call post_init after initializing the bot
         app.run_polling()
