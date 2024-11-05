@@ -87,6 +87,13 @@ class TelegramBotFramework:
         settings_str = self.settings.display()
         await update.message.reply_text(f"⚙️ Bot Settings:\n{settings_str}")
 
+    async def handle_list_commands(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        commands_list = "\n".join(
+            f"/{cmd} - {handler.description}"
+            for cmd, handler in self.commands.items()
+        )
+        await update.message.reply_text(f"Available commands:\n{commands_list}")
+
     async def post_init(self, app: Application) -> None:
         self.logger.info("Bot post-initialization complete!")
         admin_users = self.config['bot'].get('admin_users', [])
@@ -112,6 +119,9 @@ class TelegramBotFramework:
         # Register command handlers
         for cmd_name in self.commands:
             app.add_handler(TelegramCommandHandler(cmd_name, self.handle_command))
+
+        # Register the list_commands handler
+        app.add_handler(TelegramCommandHandler("list_commands", self.handle_list_commands))
 
         self.logger.info("Bot started successfully!")
         
