@@ -6,6 +6,7 @@ import logging
 import os
 from pathlib import Path
 from typing import Dict, Optional
+from dotenv import load_dotenv
 
 import yaml
 from telegram import Update
@@ -26,8 +27,16 @@ from .settings import Settings
 
 
 class TelegramBotFramework:
-    def __init__(self, token: str, config_path: str = "config.yml"):
-        self.token = token
+    def __init__(self, token: str = None, config_path: str = "config.yml"):
+        
+        # Get bot token from environment but overwrite it if it is provided inside .env file
+        load_dotenv(override=True)
+        env_token = os.getenv("DEFAULT_BOT_TOKEN")
+        if not env_token:
+            raise ValueError("DEFAULT_BOT_TOKEN not found in environment variables")
+        
+        self.token = token if token else env_token
+        
         script_dir = Path(__file__).parent
         config_path = script_dir / config_path
         self.config_path = Path(config_path)
