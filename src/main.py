@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+import yaml
 from bot import TelegramBotFramework
 
 def main():

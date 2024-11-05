@@ -77,16 +77,32 @@ class TelegramBotFramework:
         self.commands[name] = CommandHandler(name, description, response)
 
     async def handle_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        command = update.message.text.split()[0][1:]  # Remove the '/' prefix
-        handler = self.commands.get(command)
-        
-        if handler:
-            response = handler.get_response(self)
-            await update.message.reply_text(response)
+        try:
+            command = update.message.text.split()[0][1:]  # Remove the '/' prefix
+            handler = self.commands.get(command)
+            
+            if handler:
+                response = handler.get_response(self)
+                await update.message.reply_text(response)
+        except Exception as e:
+            self.logger.error(f"Error handling command: {e}")
+            await update.message.reply_text("An error occurred while handling the command.")
 
     async def handle_settings(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         settings_str = self.settings.display()
         await update.message.reply_text(f"⚙️ Bot Settings:\n{settings_str}")
+
+    async def handle_list_commands(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        try:
+            logging.info("Listing available commands")
+            commands_list = "\n".join(
+            f"/{cmd} - {handler.description}"
+            for cmd, handler in self.commands.items()
+            )
+            await update.message.reply_text(f"Available commands:\n{commands_list}")
+        except Exception as e:
+            self.logger.error(f"Error listing commands: {e}")
+            await update.message.reply_text("An error occurred while listing commands.")
 
     async def post_init(self, app: Application) -> None:
         self.logger.info("Bot post-initialization complete!")
@@ -113,6 +129,10 @@ class TelegramBotFramework:
         # Register command handlers
         for cmd_name in self.commands:
             app.add_handler(TelegramCommandHandler(cmd_name, self.handle_command))
+
+        # Register the list_commands handler on python-bot-telegran base class
+        app.add_handler(TelegramCommandHandler("list_commands", self.handle_list_commands))        
+        # app.add_handler(CommandHandler("list_commands", self.handle_list_commands))
 
         self.logger.info("Bot started successfully!")
         
