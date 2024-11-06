@@ -13,6 +13,10 @@ class CommandHandler:
         if self.name == "help":
             
             my_commands = await bot.app.bot.get_my_commands()
+            commands_dict = {
+                cmd.command: cmd.description or bot.commands[cmd.command].__doc__
+                for cmd in my_commands
+            }
             
             commands_list = "\n".join(
                 f"/{cmd} - {handler.description}"
