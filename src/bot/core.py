@@ -46,6 +46,8 @@ class TelegramBotFramework:
         self.commands: Dict[str, CommandHandler] = {}
         self.logger = logging.getLogger(__name__)
         
+        self.app: Optional[Application] = None
+        
         self._load_config()
         self._setup_logging()
         self._register_default_commands()
@@ -84,7 +86,7 @@ class TelegramBotFramework:
             handler = self.commands.get(command)
             
             if handler:
-                response = handler.get_response(self)
+                response = await handler.get_response(self)
                 await update.message.reply_text(response)
         except Exception as e:
             self.logger.error(f"Error handling command: {e}")
@@ -98,8 +100,8 @@ class TelegramBotFramework:
         try:
             logging.info("Listing available commands")
             commands_list = "\n".join(
-            f"/{cmd} - {handler.description}"
-            for cmd, handler in self.commands.items()
+                f"/{cmd} - {handler.description}"
+                for cmd, handler in self.commands.items()
             )
             await update.message.reply_text(f"Available commands:\n{commands_list}")
         except Exception as e:
@@ -107,27 +109,22 @@ class TelegramBotFramework:
             await update.message.reply_text("An error occurred while listing commands.")
 
     async def post_init(self, app: Application) -> None:
-        
-        try:
-            await self.application.bot.set_my_commands([])
-            start_message = "Command menu cleared!"
-            await self.application.bot.send_message(chat_id=admin_id, text=start_message, parse_mode=ParseMode.MARKDOWN)        
+        self.logger.info("Bot post-initialization complete!")
+        admin_users = self.config['bot'].get('admin_users', [])
+        for admin_id in admin_users:
+            try:
+                await app.bot.send_message(chat_id=admin_id, text="Bot post-initialization complete!")
+            except Exception as e:
+                self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
 
-            self.logger.info("Bot post-initialization complete!")
-            admin_users = self.config['bot'].get('admin_users', [])
-            for admin_id in admin_users:
-                try:
-                    await app.bot.send_message(chat_id=admin_id, text="Bot post-initialization complete!")
-                except Exception as e:
-                    self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
-                    
-        except Exception as e:
-            self.logger.error(f"Error during post-initialization: {e}")
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            self.logger.error(f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}")            
+        # Set bot commands dynamically
+        bot_commands = [
+            (f"/{cmd}", handler.description)
+            for cmd, handler in self.commands.items()
+        ]
+        await app.bot.set_my_commands(bot_commands)
 
-    def run(self) -> None:
+    def run(self, handle_echo) -> None:
         app = Application.builder().token(self.token).build()
 
         async def get_bot_username():
@@ -144,11 +141,15 @@ class TelegramBotFramework:
         for cmd_name in self.commands:
             app.add_handler(TelegramCommandHandler(cmd_name, self.handle_command))
 
-        # Register the list_commands handler on python-bot-telegran base class
-        app.add_handler(TelegramCommandHandler("list_commands", self.handle_list_commands))        
-        # app.add_handler(CommandHandler("list_commands", self.handle_list_commands))
+        # Register the list_commands handler
+        app.add_handler(TelegramCommandHandler("list_commands", self.handle_list_commands))
+
+        # Register the echo handler
+        app.add_handler(TelegramCommandHandler("echo", handle_echo))
 
         self.logger.info("Bot started successfully!")
+        
+        self.app = app
         
         # Call post_init after initializing the bot
         app.run_polling()
