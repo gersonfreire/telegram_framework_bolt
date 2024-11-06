@@ -105,21 +105,28 @@ class TelegramBotFramework:
             self.logger.error(f"Error listing commands: {e}")
             await update.message.reply_text("An error occurred while listing commands.")
 
-    async def post_init(self, app: Application) -> None:
-        self.logger.info("Bot post-initialization complete!")
-        admin_users = self.config['bot'].get('admin_users', [])
-        for admin_id in admin_users:
-            try:
-                await app.bot.send_message(chat_id=admin_id, text="Bot post-initialization complete!")
-            except Exception as e:
-                self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
+    async def post_init(self, app: Application) -> None:   
+                    
+        try:
+            self.logger.info("Bot post-initialization complete!")
+            admin_users = self.config['bot'].get('admin_users', [])
 
-        # Set bot commands dynamically
-        bot_commands = [
+            await self.application.bot.set_my_commands([])
+            
+            for admin_id in admin_users:
+                try:
+                    await app.bot.send_message(chat_id=admin_id, text="Bot post-initialization complete!")
+                except Exception as e:
+                    self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
+
+            # Set bot commands dynamically
+            bot_commands = [
             (f"/{cmd}", handler.description)
             for cmd, handler in self.commands.items()
-        ]
-        await app.bot.set_my_commands(bot_commands)
+            ]
+            await app.bot.set_my_commands(bot_commands)
+        except Exception as e:
+            self.logger.error(f"Error in post_init: {e}")
 
     def run(self) -> None:
         app = Application.builder().token(self.token).build()
