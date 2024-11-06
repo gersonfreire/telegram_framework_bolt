@@ -46,6 +46,8 @@ class TelegramBotFramework:
         self.commands: Dict[str, CommandHandler] = {}
         self.logger = logging.getLogger(__name__)
         
+        self.app: Optional[Application] = None
+        
         self._load_config()
         self._setup_logging()
         self._register_default_commands()
@@ -83,7 +85,7 @@ class TelegramBotFramework:
             handler = self.commands.get(command)
             
             if handler:
-                response = handler.get_response(self)
+                response = await handler.get_response(self)
                 await update.message.reply_text(response)
         except Exception as e:
             self.logger.error(f"Error handling command: {e}")
@@ -145,6 +147,8 @@ class TelegramBotFramework:
         app.add_handler(TelegramCommandHandler("echo", handle_echo))
 
         self.logger.info("Bot started successfully!")
+        
+        self.app = app
         
         # Call post_init after initializing the bot
         app.run_polling()
