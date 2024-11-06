@@ -5,12 +5,14 @@ import asyncio
 import logging
 import os
 from pathlib import Path
+import sys
 from typing import Dict, Optional
 from dotenv import load_dotenv
 
 import yaml
 from telegram import Update
 from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes, PicklePersistence
+from telegram.constants import ParseMode
 
 from .handlers import CommandHandler
 from .settings import Settings
@@ -105,13 +107,25 @@ class TelegramBotFramework:
             await update.message.reply_text("An error occurred while listing commands.")
 
     async def post_init(self, app: Application) -> None:
-        self.logger.info("Bot post-initialization complete!")
-        admin_users = self.config['bot'].get('admin_users', [])
-        for admin_id in admin_users:
-            try:
-                await app.bot.send_message(chat_id=admin_id, text="Bot post-initialization complete!")
-            except Exception as e:
-                self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
+        
+        try:
+            await self.application.bot.set_my_commands([])
+            start_message = "Command menu cleared!"
+            await self.application.bot.send_message(chat_id=admin_id, text=start_message, parse_mode=ParseMode.MARKDOWN)        
+
+            self.logger.info("Bot post-initialization complete!")
+            admin_users = self.config['bot'].get('admin_users', [])
+            for admin_id in admin_users:
+                try:
+                    await app.bot.send_message(chat_id=admin_id, text="Bot post-initialization complete!")
+                except Exception as e:
+                    self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
+                    
+        except Exception as e:
+            self.logger.error(f"Error during post-initialization: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            self.logger.error(f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}")            
 
     def run(self) -> None:
         app = Application.builder().token(self.token).build()
