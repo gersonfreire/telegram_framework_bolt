@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 import yaml
 from telegram import Update
 from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes, PicklePersistence
+from telegram.constants import ParseMode
 
 from .handlers import CommandHandler
 from .settings import Settings
@@ -104,6 +105,11 @@ class TelegramBotFramework:
             await update.message.reply_text("An error occurred while listing commands.")
 
     async def post_init(self, app: Application) -> None:
+        
+        await self.application.bot.set_my_commands([])
+        start_message = "Command menu cleared!"
+        await self.application.bot.send_message(chat_id=admin_id, text=start_message, parse_mode=ParseMode.MARKDOWN)        
+        
         self.logger.info("Bot post-initialization complete!")
         admin_users = self.config['bot'].get('admin_users', [])
         for admin_id in admin_users:
