@@ -97,8 +97,8 @@ class TelegramBotFramework:
         try:
             logging.info("Listing available commands")
             commands_list = "\n".join(
-            f"/{cmd} - {handler.description}"
-            for cmd, handler in self.commands.items()
+                f"/{cmd} - {handler.description}"
+                for cmd, handler in self.commands.items()
             )
             await update.message.reply_text(f"Available commands:\n{commands_list}")
         except Exception as e:
@@ -106,25 +106,20 @@ class TelegramBotFramework:
             await update.message.reply_text("An error occurred while listing commands.")
 
     async def post_init(self, app: Application) -> None:
-        
-        try:
-            await self.application.bot.set_my_commands([])
-            start_message = "Command menu cleared!"
-            await self.application.bot.send_message(chat_id=admin_id, text=start_message, parse_mode=ParseMode.MARKDOWN)        
+        self.logger.info("Bot post-initialization complete!")
+        admin_users = self.config['bot'].get('admin_users', [])
+        for admin_id in admin_users:
+            try:
+                await app.bot.send_message(chat_id=admin_id, text="Bot post-initialization complete!")
+            except Exception as e:
+                self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
 
-            self.logger.info("Bot post-initialization complete!")
-            admin_users = self.config['bot'].get('admin_users', [])
-            for admin_id in admin_users:
-                try:
-                    await app.bot.send_message(chat_id=admin_id, text="Bot post-initialization complete!")
-                except Exception as e:
-                    self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
-                    
-        except Exception as e:
-            self.logger.error(f"Error during post-initialization: {e}")
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            self.logger.error(f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}")            
+        # Set bot commands dynamically
+        bot_commands = [
+            (f"/{cmd}", handler.description)
+            for cmd, handler in self.commands.items()
+        ]
+        await app.bot.set_my_commands(bot_commands)
 
     def run(self) -> None:
         app = Application.builder().token(self.token).build()
