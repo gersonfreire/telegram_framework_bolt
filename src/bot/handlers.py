@@ -18,6 +18,8 @@ class CommandHandler:
                 for cmd in my_commands
             }
             
+            handlers = [handler for handler in bot.commands.values()]
+            
             commands_list = "\n".join(
                 f"/{cmd} - {handler.description}"
                 for cmd, handler in bot.commands.items()

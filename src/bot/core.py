@@ -47,6 +47,7 @@ class TelegramBotFramework:
         self.logger = logging.getLogger(__name__)
         
         self.app: Optional[Application] = None
+        self.registered_handlers = {}
         
         self._load_config()
         self._setup_logging()
@@ -121,7 +122,31 @@ class TelegramBotFramework:
             (f"/{cmd}", handler.description)
             for cmd, handler in self.commands.items()
         ]
-        await app.bot.set_my_commands(bot_commands)
+        # my_commands = await app.bot.get_my_commands()
+        await app.bot.set_my_commands(bot_commands)        
+            
+        my_commands = await app.bot.get_my_commands()
+        commands_dict = {
+            cmd.command: cmd.description or app.bot.commands[cmd.command].__doc__
+            for cmd in my_commands
+        }
+        
+        registered_handlers = [handler.callback.__name__ for handler in app.handlers[0]]
+        
+        registered_handlers = [
+            f"{handler.callback.__name__}: {', '.join(handler.commands)}"
+            for handler in app.handlers[0] if hasattr(handler, 'commands')
+        ]
+        
+        for handler in app.handlers[0]:
+            if hasattr(handler, 'commands'):
+                #for command in handler.commands:
+                    self.registered_handlers[handler.callback.__name__] = {
+                    'handler': handler.callback.__name__,
+                    'command': ', '.join(handler.commands)
+                    }
+        
+        self.logger.info(f"Registered handlers: {registered_handlers}")    
 
     def run(self, handle_echo) -> None:
         app = Application.builder().token(self.token).build()
