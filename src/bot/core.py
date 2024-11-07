@@ -81,6 +81,13 @@ class TelegramBotFramework:
         self.commands[name] = CommandHandler(name, description, response)
 
     async def handle_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Generic handler for bot commands
+
+        Args:
+            update (Update): _description_
+            context (ContextTypes.DEFAULT_TYPE): _description_
+        """
+        
         try:
             command = update.message.text.split()[0][1:]  # Remove the '/' prefix
             handler = self.commands.get(command)
@@ -93,10 +100,24 @@ class TelegramBotFramework:
             await update.message.reply_text("An error occurred while handling the command.")
 
     async def handle_settings(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Configure bot settings
+
+        Args:
+            update (Update): _description_
+            context (ContextTypes.DEFAULT_TYPE): _description_
+        """
+        
         settings_str = self.settings.display()
         await update.message.reply_text(f"⚙️ Bot Settings:\n{settings_str}")
 
     async def handle_list_commands(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """List available commands
+
+        Args:
+            update (Update): _description_
+            context (ContextTypes.DEFAULT_TYPE): _description_
+        """
+        
         try:
             logging.info("Listing available commands")
             commands_list = "\n".join(
@@ -140,10 +161,11 @@ class TelegramBotFramework:
         
         for handler in app.handlers[0]:
             if hasattr(handler, 'commands'):
-                #for command in handler.commands:
-                    self.registered_handlers[handler.callback.__name__] = {
-                    'handler': handler.callback.__name__,
-                    'command': ', '.join(handler.commands)
+                    docstring = handler.callback.__doc__.split('\n')[0] if handler.callback.__doc__ else "No docstring available"
+                    self.registered_handlers[', '.join(handler.commands)] = {
+                        'handler': handler.callback.__name__,
+                        'command': ', '.join(handler.commands),
+                        'docstring': docstring
                     }
         
         self.logger.info(f"Registered handlers: {registered_handlers}")    

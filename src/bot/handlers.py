@@ -10,6 +10,15 @@ class CommandHandler:
         self.response_template = response_template
 
     async def get_response(self, bot: 'TelegramBotFramework') -> str:
+        """Generic command handler to return a response based on the command name
+
+        Args:
+            bot (TelegramBotFramework): _description_
+
+        Returns:
+            str: Generic response based on the command name
+        """
+        
         if self.name == "help":
             
             my_commands = await bot.app.bot.get_my_commands()
@@ -18,13 +27,21 @@ class CommandHandler:
                 for cmd in my_commands
             }
             
-            handlers = [handler for handler in bot.commands.values()]
-            
             commands_list = "\n".join(
                 f"/{cmd} - {handler.description}"
                 for cmd, handler in bot.commands.items()
             )
+            
+            registered_commands = "\n".join(
+                f"/{cmd} - {handler.description}"
+                for cmd, handler in bot.registered_handlers.items()
+                if cmd not in bot.commands
+            )
+            
+            commands_list += "\n" + registered_commands
+            
             return self.response_template.format(commands=commands_list)
+        
         elif self.name == "settings":
             return self.response_template.format(settings=bot.settings.display())
         else:
