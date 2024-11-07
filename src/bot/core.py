@@ -47,6 +47,7 @@ class TelegramBotFramework:
         self.logger = logging.getLogger(__name__)
         
         self.app: Optional[Application] = None
+        self.registered_handlers = {}
         
         self._load_config()
         self._setup_logging()
@@ -81,6 +82,13 @@ class TelegramBotFramework:
         self.commands[name] = CommandHandler(name, description, response)
 
     async def handle_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Generic handler for bot commands
+
+        Args:
+            update (Update): _description_
+            context (ContextTypes.DEFAULT_TYPE): _description_
+        """
+        
         try:
             command = update.message.text.split()[0][1:]  # Remove the '/' prefix
             handler = self.commands.get(command)
@@ -93,10 +101,24 @@ class TelegramBotFramework:
             await update.message.reply_text("An error occurred while handling the command.")
 
     async def handle_settings(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Configure bot settings
+
+        Args:
+            update (Update): _description_
+            context (ContextTypes.DEFAULT_TYPE): _description_
+        """
+        
         settings_str = self.settings.display()
         await update.message.reply_text(f"⚙️ Bot Settings:\n{settings_str}")
 
     async def handle_list_commands(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """List available commands
+
+        Args:
+            update (Update): _description_
+            context (ContextTypes.DEFAULT_TYPE): _description_
+        """
+        
         try:
             logging.info("Listing available commands")
             commands_list = "\n".join(
@@ -122,7 +144,32 @@ class TelegramBotFramework:
             (f"/{cmd}", handler.description)
             for cmd, handler in self.commands.items()
         ]
-        await app.bot.set_my_commands(bot_commands)
+        # my_commands = await app.bot.get_my_commands()
+        await app.bot.set_my_commands(bot_commands)        
+            
+        my_commands = await app.bot.get_my_commands()
+        commands_dict = {
+            cmd.command: cmd.description or app.bot.commands[cmd.command].__doc__
+            for cmd in my_commands
+        }
+        
+        registered_handlers = [handler.callback.__name__ for handler in app.handlers[0]]
+        
+        registered_handlers = [
+            f"{handler.callback.__name__}: {', '.join(handler.commands)}"
+            for handler in app.handlers[0] if hasattr(handler, 'commands')
+        ]
+        
+        for handler in app.handlers[0]:
+            if hasattr(handler, 'commands'):
+                    docstring = handler.callback.__doc__.split('\n')[0] if handler.callback.__doc__ else "No docstring available"
+                    self.registered_handlers[', '.join(handler.commands)] = {
+                        'handler': handler.callback.__name__,
+                        'command': ', '.join(handler.commands),
+                        'docstring': docstring
+                    }
+        
+        self.logger.info(f"Registered handlers: {registered_handlers}")    
 
     def run(self, handle_echo) -> None:
         app = Application.builder().token(self.token).build()
