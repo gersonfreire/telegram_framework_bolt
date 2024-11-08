@@ -17,7 +17,7 @@ def main():
     bot_token = os.getenv("DEFAULT_BOT_TOKEN", None) 
     
     bot = TelegramBotFramework(bot_token)
-    bot.run(handle_echo)
+    bot.run([handle_echo])
 
 if __name__ == "__main__":
     main()
