@@ -171,7 +171,7 @@ class TelegramBotFramework:
         
         self.logger.info(f"Registered handlers: {registered_handlers}")    
 
-    def run(self, handle_echo) -> None:
+    def run(self, external_handlers:list) -> None:
         app = Application.builder().token(self.token).build()
 
         async def get_bot_username():
@@ -191,8 +191,9 @@ class TelegramBotFramework:
         # Register the list_commands handler
         app.add_handler(TelegramCommandHandler("list_commands", self.handle_list_commands))
 
-        # Register the echo handler
-        app.add_handler(TelegramCommandHandler("echo", handle_echo))
+        # Register the external handlers
+        for handler in external_handlers:
+            app.add_handler(TelegramCommandHandler("echo", handler))
 
         self.logger.info("Bot started successfully!")
         
