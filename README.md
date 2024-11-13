@@ -13,29 +13,41 @@ A powerful and extensible Python-based Telegram bot framework that provides auto
 ## Setup
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/telegram-bot-framework.git
 cd telegram-bot-framework
 ```
 
 2. Create and activate a virtual environment:
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 3. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 4. Configure the bot:
+
    - Copy `.env.example` to `.env` and add your bot token
    - Copy `config.yml.example` to `config.yml` and customize as needed
-
 5. Run the bot:
+
 ```bash
 python src/main.py
+```
+
+## Importing
+
+```
+from bot.core import TelegramBotFramework
+from bot.handlers import CommandHandler
+from bot.settings import Settings
 ```
 
 ## Project Structure
