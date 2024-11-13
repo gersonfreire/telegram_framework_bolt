@@ -42,7 +42,7 @@ def get_config_path(config_filename: str = "config.yml") -> Path:
 
 class TelegramBotFramework:
     
-    def __init__(self, token: str = None, config_filename: str = get_config_path()):        
+    def __init__(self, token: str = None, config_filename: str = get_config_path(), env_file: Path = None):        
         
         self.logger = logging.getLogger(__name__)
         
@@ -51,7 +51,8 @@ class TelegramBotFramework:
         self.logger.debug(f"The main script folder path is: {main_script_path}")                
         
         # Get bot token from environment but overwrite it if it is provided inside .env file
-        load_dotenv(override=True)
+        self.env_file = main_script_path.parent / ".env" or env_file
+        load_dotenv(override=True, dotenv_path=str(self.env_file))
         env_token = os.getenv("DEFAULT_BOT_TOKEN")
         if not env_token:
             raise ValueError("DEFAULT_BOT_TOKEN not found in environment variables")
