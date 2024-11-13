@@ -36,9 +36,13 @@ import sys
 def get_main_script_path() -> Path:
     return (Path(os.path.abspath(sys.modules['__main__'].__file__)))
 
+def get_config_path(config_filename: str = "config.yml") -> Path:
+    config_path = get_main_script_path()
+    return config_path.parent / config_filename
+
 class TelegramBotFramework:
     
-    def __init__(self, token: str = None, config_path: str = f"{os.path.dirname(get_main_script_path())}{os.sep}config.yml"):
+    def __init__(self, token: str = None, config_filename: str = get_config_path()):        
         
         self.logger = logging.getLogger(__name__)
         
