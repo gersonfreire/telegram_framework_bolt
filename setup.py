@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='telegram-bot-framework-bolt',  # Replace with your own package name
+    name='tlgbotfwk',  # Replace with your own package name
     version='0.1.0',
     description='A powerful and extensible Python-based Telegram bot framework',
     author='Maker',
