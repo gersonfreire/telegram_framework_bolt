@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+__version__ = "0.1.0"
+
 import asyncio
 import logging
 import os
@@ -27,9 +29,22 @@ from .settings import Settings
 # Add type hints to the class methods
 # Add docstrings to the class methods
 
+from pathlib import Path
+import os
+import sys
+
+def get_main_script_path() -> Path:
+    return (Path(os.path.abspath(sys.modules['__main__'].__file__)))
 
 class TelegramBotFramework:
-    def __init__(self, token: str = None, config_path: str = "config.yml"):
+    
+    def __init__(self, token: str = None, config_path: str = f"{os.path.dirname(get_main_script_path())}{os.sep}config.yml"):
+        
+        self.logger = logging.getLogger(__name__)
+        
+        # Get the path of the main executed script
+        main_script_path = get_main_script_path()
+        self.logger.debug(f"The main script folder path is: {main_script_path}")                
         
         # Get bot token from environment but overwrite it if it is provided inside .env file
         load_dotenv(override=True)
@@ -39,12 +54,11 @@ class TelegramBotFramework:
         
         self.token = token if token else env_token
         
-        script_dir = Path(__file__).parent
+        script_dir = main_script_path
         config_path = script_dir / config_path
         self.config_path = Path(config_path)
         self.settings = Settings()
         self.commands: Dict[str, CommandHandler] = {}
-        self.logger = logging.getLogger(__name__)
         
         self.app: Optional[Application] = None
         self.registered_handlers = {}
