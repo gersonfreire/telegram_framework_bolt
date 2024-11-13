@@ -153,7 +153,7 @@ class TelegramBotFramework:
             # get the branch name from the message
             # branch_name = update.message.text.split(' ')[1]
             message = f"_Updating the bot's code from the branch..._" # `{branch_name}`"
-            context.bot.logger.info(message)
+            self.logger.info(message)
             await update.message.reply_text(message, parse_mode=ParseMode.MARKDOWN)
             
             # update the bot's code
@@ -162,20 +162,20 @@ class TelegramBotFramework:
             
             if len(update.effective_message.text.split(' ')) > 1:
                 git_command = update.effective_message.text.split(' ')[1]
-                context.bot.logger.info(f"git command: {command}")
+                self.logger.info(f"git command: {command}")
                 command = f"git {git_command}"
             
             # execute system command and return the result
             # os.system(command=command)
             result = os.popen(command).read()
-            context.bot.logger.info(f"Result: {result}")
+            self.logger.info(f"Result: {result}")
             
             result = f"_Result:_ `{result}`"
             
             await update.message.reply_text(result, parse_mode=ParseMode.MARKDOWN)
             
         except Exception as e:
-            context.bot.logger.error(f"Error: {e}")
+            self.logger.error(f"Error: {e}")
             await update.message.reply_text(f"An error occurred: {e}")
 
     async def post_init(self, app: Application) -> None:
