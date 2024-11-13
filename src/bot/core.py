@@ -146,7 +146,7 @@ class TelegramBotFramework:
             self.logger.error(f"Error listing commands: {e}")
             await update.message.reply_text("An error occurred while listing commands.")
 
-    async def cmd_git(update: Update, context: CallbackContext):
+    async def cmd_git(self, update: Update, context: CallbackContext):
         """Update the bot's version from a git repository"""
         
         try:
