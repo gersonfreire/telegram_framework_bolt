@@ -21,9 +21,9 @@ def main():
     load_dotenv(override=True)
     
     # You may set bot token from superclass or let the baseclass get itself from environment 
-    bot_token = os.getenv("DEFAULT_BOT_TOKEN", None) 
+    # bot_token = os.getenv("DEFAULT_BOT_TOKEN", None) 
     
-    bot = TelegramBotFramework(bot_token)
+    bot = TelegramBotFramework()
     bot.run([handle_echo])
 
 if __name__ == "__main__":
