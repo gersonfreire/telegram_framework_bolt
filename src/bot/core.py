@@ -58,9 +58,7 @@ class TelegramBotFramework:
         
         self.token = token if token else env_token
         
-        script_dir = main_script_path
-        config_path = script_dir / config_path
-        self.config_path = Path(config_path)
+        self.config_path = config_filename
         self.settings = Settings()
         self.commands: Dict[str, CommandHandler] = {}
         
