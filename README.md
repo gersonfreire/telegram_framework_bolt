@@ -116,3 +116,27 @@ MIT License
 3. Commit your changes
 4. Push to the branch
 5. Create a Pull Request
+
+## Deploy
+
+```
+
+pip install setuptools
+pip install twine 
+python setup.py sdist bdist_wheel
+twine upload dist/*  ==> Pypi API Token 
+```
+
+## TODOS:
+
+* [ ] Embed persistence to the bot framework
+* [ ] Embed the settings into the bot framework
+
+* [ ] Add a method to change settings
+* [ ] Add a command to display the settings
+
+* [ ] Add a command to stop the bot
+* [ ] Embed the logging into the bot framework
+
+* [ ] Add type hints to the class methods
+* [ ] Add docstrings to the class methods
