@@ -26,7 +26,7 @@ from pathlib import Path
 import os
 import sys
 
-import bot.util_decorators as util_decorators
+# import bot.util_decorators as util_decorators
 
 logger = logging.getLogger(__name__)
 
@@ -171,9 +171,6 @@ class TelegramBotFramework:
     def register_command(self, name: str, description: str, response: str) -> None:
         self.commands[name] = CommandHandler(name, description, response)
 
-    # @util_decorators.with_writing_action 
-    # @util_decorators.with_log_admin
-    # @util_decorators.with_register_user
     @with_typing_action
     @with_log_admin
     @with_register_user
@@ -198,7 +195,7 @@ class TelegramBotFramework:
 
     @with_typing_action
     @with_log_admin
-    # @with_persistent_user_data
+    @with_register_user
     async def handle_settings(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Configure bot settings
 
@@ -212,7 +209,7 @@ class TelegramBotFramework:
 
     @with_typing_action
     @with_log_admin
-    # @with_persistent_user_data
+    @with_register_user
     async def handle_list_commands(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """List available commands
 
@@ -234,7 +231,7 @@ class TelegramBotFramework:
 
     @with_typing_action 
     @with_log_admin
-    # @with_persistent_user_data
+    @with_register_user
     async def cmd_git(self, update: Update, context: CallbackContext):
         """Update the bot's version from a git repository"""
         
@@ -269,7 +266,7 @@ class TelegramBotFramework:
 
     @with_typing_action
     @with_log_admin
-    # @with_persistent_user_data
+    @with_register_user
     async def restart_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             await update.message.reply_text("_Restarting..._", parse_mode=ParseMode.MARKDOWN)
@@ -284,7 +281,7 @@ class TelegramBotFramework:
 
     @with_typing_action 
     @with_log_admin
-    # @with_persistent_user_data
+    @with_register_user
     async def stop_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await update.message.reply_text(f"*{update._bot.username} STOPPED!*", parse_mode=ParseMode.MARKDOWN)
