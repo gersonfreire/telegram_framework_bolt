@@ -391,7 +391,7 @@ class TelegramBotFramework:
 
         # Register the external handlers
         for handler in external_handlers:
-            app.add_handler(TelegramCommandHandler("echo", handler))
+            app.add_handler(TelegramCommandHandler("echo", handler), group=-1)
 
         self.logger.info("Bot started successfully!")
         
