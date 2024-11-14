@@ -26,6 +26,8 @@ from pathlib import Path
 import os
 import sys
 
+# import bot.util_decorators as util_decorators
+
 logger = logging.getLogger(__name__)
 
 def get_main_script_path() -> Path:
@@ -67,12 +69,13 @@ class TelegramBotFramework:
                         logger.error(f"Failed to send log message: {e}")
 
                 return await handler(self, update, context, *args, **kwargs)
+                
             except Exception as e:
                 logger.error(f"Error: {e}")
                 return await handler(self, update, context, *args, **kwargs)
         return wrapper
 
-    def with_persistent_user_data(handler):
+    def with_register_user(handler):
         @wraps(handler)
         async def wrapper(self, update: Update, context: CallbackContext, *args, **kwargs):
             try:
@@ -104,10 +107,13 @@ class TelegramBotFramework:
                 this_user_data = context.user_data
 
                 return await handler(self, update, context, *args, **kwargs)
+                # return await handler(update, context)
+            
             except Exception as e:
                 logger.error(f"Error in with_persistent_user_data: {e}")
                 return await handler(self, update, context, *args, **kwargs)
-            return wrapper
+            
+        return wrapper
     
     def __init__(self, token: str = None, config_filename: str = get_config_path(), env_file: Path = None):        
         
@@ -167,6 +173,7 @@ class TelegramBotFramework:
 
     @with_typing_action
     @with_log_admin
+    @with_register_user
     async def handle_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Generic handler for bot commands
 
@@ -188,6 +195,7 @@ class TelegramBotFramework:
 
     @with_typing_action
     @with_log_admin
+    @with_register_user
     async def handle_settings(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Configure bot settings
 
@@ -201,6 +209,7 @@ class TelegramBotFramework:
 
     @with_typing_action
     @with_log_admin
+    @with_register_user
     async def handle_list_commands(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """List available commands
 
@@ -222,6 +231,7 @@ class TelegramBotFramework:
 
     @with_typing_action 
     @with_log_admin
+    @with_register_user
     async def cmd_git(self, update: Update, context: CallbackContext):
         """Update the bot's version from a git repository"""
         
@@ -256,6 +266,7 @@ class TelegramBotFramework:
 
     @with_typing_action
     @with_log_admin
+    @with_register_user
     async def restart_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             await update.message.reply_text("_Restarting..._", parse_mode=ParseMode.MARKDOWN)
@@ -270,6 +281,7 @@ class TelegramBotFramework:
 
     @with_typing_action 
     @with_log_admin
+    @with_register_user
     async def stop_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await update.message.reply_text(f"*{update._bot.username} STOPPED!*", parse_mode=ParseMode.MARKDOWN)
