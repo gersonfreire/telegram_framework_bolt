@@ -93,10 +93,7 @@ class TelegramBotFramework:
                 }
 
                 # Update or insert persistent user data with user_data dictionary
-                await context.application.persistence.update_user_data(user_id, user_data)
-                # Now, context.user_data should reflect the updated data
-                updated_user_data = context.user_data[user_id]
-                print(updated_user_data)  # This should print the updated user data                
+                await context.application.persistence.update_user_data(user_id, user_data)            
                 
                 # update or insert each item of user_data dictionary in context
                 for key, value in user_data.items():
@@ -110,7 +107,6 @@ class TelegramBotFramework:
                 this_user_data = context.user_data
 
                 return await handler(self, update, context, *args, **kwargs)
-                # return await handler(update, context)
             
             except Exception as e:
                 logger.error(f"Error in with_persistent_user_data: {e}")
