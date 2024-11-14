@@ -44,6 +44,8 @@ class CommandHandler:
 
             elif self.name == "settings":
                 return self.response_template.format(settings=bot.settings.display())
+            elif self.name == "echo":
+                return self.response_template.format(message='echo')
             else:
                 return self.response_template
             
