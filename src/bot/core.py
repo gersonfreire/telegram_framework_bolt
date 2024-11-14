@@ -167,8 +167,11 @@ class TelegramBotFramework:
     def register_command(self, name: str, description: str, response: str) -> None:
         self.commands[name] = CommandHandler(name, description, response)
 
-    @util_decorators.with_writing_action # with_typing_action
-    @with_log_admin
+    @util_decorators.with_writing_action 
+    @util_decorators.with_log_admin
+    @util_decorators.with_register_user
+    # @with_typing_action
+    # @with_log_admin
     # @with_persistent_user_data
     async def handle_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Generic handler for bot commands
