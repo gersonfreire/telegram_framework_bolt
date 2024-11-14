@@ -9,14 +9,14 @@ import logging
 import os
 from pathlib import Path
 import sys
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from dotenv import load_dotenv
 import dotenv
 
 import yaml
 from telegram import Update
 from telegram.constants import ChatAction
-from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes, PicklePersistence, CallbackContext
+from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes, PicklePersistence, CallbackContext, filters
 from telegram.constants import ParseMode
 
 from .handlers import CommandHandler
@@ -54,19 +54,20 @@ class TelegramBotFramework:
     def with_log_admin(handler):
         @wraps(handler)
         async def wrapper(self, update: Update, context: CallbackContext, *args, **kwargs):
+            
             try:
-                admin_user_id = dotenv.get_key(dotenv.find_dotenv(), "ADMIN_ID_LIST")
                 user_id = update.effective_user.id
                 user_name = update.effective_user.full_name
                 command = update.message.text
-
-                if str(user_id) != admin_user_id:
-                    log_message = f"Command: {command}\nUser ID: {user_id}\nUser Name: {user_name}"
-                    logger.debug(f"Sending log message to admin: {log_message}")
-                    try:
-                        await context.bot.send_message(chat_id=admin_user_id, text=log_message, parse_mode=ParseMode.MARKDOWN)
-                    except Exception as e:
-                        logger.error(f"Failed to send log message: {e}")
+                
+                if int(user_id) not in self.admin_users:                    
+                    for admin_user_id in self.admin_users:
+                        try:
+                                log_message = f"Command: {command}\nUser ID: {user_id}\nUser Name: {user_name}"
+                                logger.debug(f"Sending log message to admin: {log_message}")                            
+                                await context.bot.send_message(chat_id=admin_user_id, text=log_message, parse_mode=ParseMode.MARKDOWN)
+                        except Exception as e:
+                            logger.error(f"Failed to send log message to admin {admin_user_id}: {e}")
 
                 return await handler(self, update, context, *args, **kwargs)
                 
@@ -114,7 +115,7 @@ class TelegramBotFramework:
             
         return wrapper
     
-    def __init__(self, token: str = None, config_filename: str = get_config_path(), env_file: Path = None):        
+    def __init__(self, token: str = None, admin_users: List[int] = [], config_filename: str = get_config_path(), env_file: Path = None):        
         
         self.logger = logging.getLogger(__name__)
         
@@ -130,6 +131,7 @@ class TelegramBotFramework:
             raise ValueError("DEFAULT_BOT_TOKEN not found in environment variables")
         
         self.token = token if token else env_token
+        self.admin_users = list(map(int, dotenv.get_key(dotenv.find_dotenv(), "ADMIN_ID_LIST").split(','))) or admin_users
         
         self.config_path = config_filename
         self.settings = Settings()
@@ -299,54 +301,61 @@ class TelegramBotFramework:
     @with_register_user
     async def show_user_data(self, update: Update, context: CallbackContext):
         """Show current persistent user data"""
+        
         try:
             user_data = context.user_data
             user_data_str = "\n".join(f"{k}: {v}" for k, v in user_data.items())
             await update.message.reply_text(f"Current user data:\n{user_data_str}")
+            
         except Exception as e:
             self.logger.error(f"Error showing user data: {e}")
             await update.message.reply_text("An error occurred while showing user data.")
+            
 
     async def post_init(self, app: Application) -> None:
-        self.logger.info("Bot post-initialization complete!")
-        admin_users = self.config['bot'].get('admin_users', [])
-        for admin_id in admin_users:
-            try:
-                await app.bot.send_message(chat_id=admin_id, text="Bot post-initialization complete!")
-            except Exception as e:
-                self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
+        
+        try:
+            self.logger.info("Bot post-initialization complete!")
+            admin_users = self.config['bot'].get('admin_users', [])
+            for admin_id in admin_users:
+                try:
+                    await app.bot.send_message(chat_id=admin_id, text="Bot post-initialization complete!")
+                except Exception as e:
+                    self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
 
-        # Set bot commands dynamically
-        bot_commands = [
+            # Set bot commands dynamically
+            bot_commands = [
             (f"/{cmd}", handler.description)
             for cmd, handler in self.commands.items()
-        ]
-        # my_commands = await app.bot.get_my_commands()
-        await app.bot.set_my_commands(bot_commands)        
-            
-        my_commands = await app.bot.get_my_commands()
-        commands_dict = {
+            ]
+            await app.bot.set_my_commands(bot_commands)        
+
+            my_commands = await app.bot.get_my_commands()
+            commands_dict = {
             cmd.command: cmd.description or app.bot.commands[cmd.command].__doc__
             for cmd in my_commands
-        }
-        
-        registered_handlers = [handler.callback.__name__ for handler in app.handlers[0]]
-        
-        registered_handlers = [
+            }
+
+            registered_handlers = [handler.callback.__name__ for handler in app.handlers[0]]
+
+            registered_handlers = [
             f"{handler.callback.__name__}: {', '.join(handler.commands)}"
             for handler in app.handlers[0] if hasattr(handler, 'commands')
-        ]
-        
-        for handler in app.handlers[0]:
-            if hasattr(handler, 'commands'):
+            ]
+
+            for handler in app.handlers[0]:
+                if hasattr(handler, 'commands'):
                     docstring = handler.callback.__doc__.split('\n')[0] if handler.callback.__doc__ else "No docstring available"
                     self.registered_handlers[', '.join(handler.commands)] = {
-                        'handler': handler.callback.__name__,
-                        'command': ', '.join(handler.commands),
-                        'docstring': docstring
+                    'handler': handler.callback.__name__,
+                    'command': ', '.join(handler.commands),
+                    'docstring': docstring
                     }
-        
-        self.logger.info(f"Registered handlers: {registered_handlers}")    
+
+            self.logger.info(f"Registered handlers: {registered_handlers}")
+            
+        except Exception as e:
+            self.logger.error(f"Error during post-initialization: {e}")
 
     def run(self, external_handlers:list) -> None:
         app = Application.builder().token(self.token).build()
@@ -378,7 +387,7 @@ class TelegramBotFramework:
         app.add_handler(TelegramCommandHandler("stop", self.stop_bot))
 
         # Register the show_user_data handler
-        app.add_handler(TelegramCommandHandler("show_user_data", self.show_user_data))
+        app.add_handler(TelegramCommandHandler("show_user_data", self.show_user_data, filters=filters.User(user_id=self.admin_users)))
 
         # Register the external handlers
         for handler in external_handlers:
