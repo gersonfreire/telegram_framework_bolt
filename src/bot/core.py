@@ -166,6 +166,7 @@ class TelegramBotFramework:
         self.commands[name] = CommandHandler(name, description, response)
 
     @with_typing_action
+    @with_log_admin
     async def handle_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Generic handler for bot commands
 
@@ -186,6 +187,7 @@ class TelegramBotFramework:
             await update.message.reply_text("An error occurred while handling the command.")
 
     @with_typing_action
+    @with_log_admin
     async def handle_settings(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Configure bot settings
 
@@ -198,6 +200,7 @@ class TelegramBotFramework:
         await update.message.reply_text(f"⚙️ Bot Settings:\n{settings_str}")
 
     @with_typing_action
+    @with_log_admin
     async def handle_list_commands(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """List available commands
 
@@ -218,6 +221,7 @@ class TelegramBotFramework:
             await update.message.reply_text("An error occurred while listing commands.")
 
     @with_typing_action 
+    @with_log_admin
     async def cmd_git(self, update: Update, context: CallbackContext):
         """Update the bot's version from a git repository"""
         
@@ -251,6 +255,7 @@ class TelegramBotFramework:
             await update.message.reply_text(f"An error occurred: {e}")
 
     @with_typing_action
+    @with_log_admin
     async def restart_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             await update.message.reply_text("_Restarting..._", parse_mode=ParseMode.MARKDOWN)
@@ -264,6 +269,7 @@ class TelegramBotFramework:
             await update.message.reply_text(f"An error occurred while restarting the bot: {e}")
 
     @with_typing_action 
+    @with_log_admin
     async def stop_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await update.message.reply_text(f"*{update._bot.username} STOPPED!*", parse_mode=ParseMode.MARKDOWN)
