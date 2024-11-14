@@ -140,6 +140,7 @@ class TelegramBotFramework:
         if not self.config_path.exists():
             raise FileNotFoundError(f"Config file not found: {self.config_path}")
         
+        # 'charmap' codec can't decode byte 0x8f in position 438: character maps to <undefined>
         with open(self.config_path, encoding='utf-8') as f:
             self.config = yaml.safe_load(f)
 
