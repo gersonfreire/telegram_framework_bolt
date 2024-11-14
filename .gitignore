@@ -40,3 +40,4 @@ ENV/
 # Bot specific
 config.yml
 your_bot_name_bot_data
+.env copy
