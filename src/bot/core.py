@@ -294,6 +294,19 @@ class TelegramBotFramework:
         # os.execv(sys.executable, args) 
         os.abort()        
 
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def show_user_data(self, update: Update, context: CallbackContext):
+        """Show current persistent user data"""
+        try:
+            user_data = context.user_data
+            user_data_str = "\n".join(f"{k}: {v}" for k, v in user_data.items())
+            await update.message.reply_text(f"Current user data:\n{user_data_str}")
+        except Exception as e:
+            self.logger.error(f"Error showing user data: {e}")
+            await update.message.reply_text("An error occurred while showing user data.")
+
     async def post_init(self, app: Application) -> None:
         self.logger.info("Bot post-initialization complete!")
         admin_users = self.config['bot'].get('admin_users', [])
@@ -363,6 +376,9 @@ class TelegramBotFramework:
         
         # Register the stop command handler
         app.add_handler(TelegramCommandHandler("stop", self.stop_bot))
+
+        # Register the show_user_data handler
+        app.add_handler(TelegramCommandHandler("show_user_data", self.show_user_data))
 
         # Register the external handlers
         for handler in external_handlers:
