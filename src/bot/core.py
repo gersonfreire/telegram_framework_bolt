@@ -51,7 +51,7 @@ class TelegramBotFramework:
 
     def with_log_admin(handler):
         @wraps(handler)
-        async def wrapper(update: Update, context: CallbackContext, *args, **kwargs):
+        async def wrapper(self, update: Update, context: CallbackContext, *args, **kwargs):
             try:
                 admin_user_id = dotenv.get_key(dotenv.find_dotenv(), "ADMIN_ID_LIST")
                 user_id = update.effective_user.id
@@ -66,15 +66,15 @@ class TelegramBotFramework:
                     except Exception as e:
                         logger.error(f"Failed to send log message: {e}")
 
-                return await handler(update, context, *args, **kwargs)
+                return await handler(self, update, context, *args, **kwargs)
             except Exception as e:
                 logger.error(f"Error: {e}")
-                return await handler(update, context, *args, **kwargs)
+                return await handler(self, update, context, *args, **kwargs)
         return wrapper
 
     def with_persistent_user_data(handler):
         @wraps(handler)
-        async def wrapper(update: Update, context: CallbackContext, *args, **kwargs):
+        async def wrapper(self, update: Update, context: CallbackContext, *args, **kwargs):
             try:
                 user_id = update.effective_user.id
                 user_data = {
@@ -103,10 +103,10 @@ class TelegramBotFramework:
                 all_users_data = await context.application.persistence.get_user_data()
                 this_user_data = context.user_data
 
-                return await handler(update, context, *args, **kwargs)
+                return await handler(self, update, context, *args, **kwargs)
             except Exception as e:
                 logger.error(f"Error in with_persistent_user_data: {e}")
-                return await handler(update, context, *args, **kwargs)
+                return await handler(self, update, context, *args, **kwargs)
             return wrapper
     
     def __init__(self, token: str = None, config_filename: str = get_config_path(), env_file: Path = None):        
