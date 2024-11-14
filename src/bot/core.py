@@ -178,6 +178,31 @@ class TelegramBotFramework:
             self.logger.error(f"Error: {e}")
             await update.message.reply_text(f"An error occurred: {e}")
 
+    async def restart_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        try:
+            await update.message.reply_text("_Restarting..._", parse_mode=ParseMode.MARKDOWN)
+            args = sys.argv[:]
+            args.insert(0, sys.executable)
+            os.chdir(os.getcwd())
+            os.execv(sys.executable, args)
+            
+        except Exception as e:
+            self.logger.error(f"Error restarting bot: {e}")
+            await update.message.reply_text(f"An error occurred while restarting the bot: {e}")
+
+    async def stop_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        
+        await update.message.reply_text(f"*{update._bot.username} STOPPED!*", parse_mode=ParseMode.MARKDOWN)
+
+        args = sys.argv[:]
+        # args.append('stop')
+        # args = ['stop']
+        args.insert(0, 'stop')
+        args=None
+        os.chdir(os.getcwd())
+        # os.execv(sys.executable, args) 
+        os.abort()        
+
     async def post_init(self, app: Application) -> None:
         self.logger.info("Bot post-initialization complete!")
         admin_users = self.config['bot'].get('admin_users', [])
@@ -241,6 +266,12 @@ class TelegramBotFramework:
         
         # Register the Git command handler
         app.add_handler(TelegramCommandHandler("git", self.cmd_git))
+        
+        # Register the restart command handler
+        app.add_handler(TelegramCommandHandler("restart", self.restart_bot))
+        
+        # Register the stop command handler
+        app.add_handler(TelegramCommandHandler("stop", self.stop_bot))
 
         # Register the external handlers
         for handler in external_handlers:
