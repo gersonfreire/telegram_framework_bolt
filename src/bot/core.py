@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 
 import yaml
 from telegram import Update
+from telegram.constants import ChatAction
 from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes, PicklePersistence, CallbackContext
 from telegram.constants import ParseMode
 
