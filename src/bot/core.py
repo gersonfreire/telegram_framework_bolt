@@ -11,6 +11,7 @@ from pathlib import Path
 import sys
 from typing import Dict, Optional
 from dotenv import load_dotenv
+import dotenv
 
 import yaml
 from telegram import Update
@@ -34,79 +35,79 @@ def get_config_path(config_filename: str = "config.yml") -> Path:
     config_path = get_main_script_path()
     return config_path.parent / config_filename
 
-def with_typing_action(handler):
-    @wraps(handler)
-    async def wrapper(update: Update, context: CallbackContext, *args, **kwargs):
-        try:
-            logger.debug("Sending typing action")
-            await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
-            return await handler(update, context, *args, **kwargs)
-        except Exception as e:
-            logger.error(f"Error: {e}")
-            return await handler(update, context, *args, **kwargs)
-    return wrapper
-
-def with_log_admin(handler):
-    @wraps(handler)
-    async def wrapper(update: Update, context: CallbackContext, *args, **kwargs):
-        try:
-            admin_user_id = dotenv.get_key(dotenv.find_dotenv(), "ADMIN_ID_LIST")
-            user_id = update.effective_user.id
-            user_name = update.effective_user.full_name
-            command = update.message.text
-
-            if str(user_id) != admin_user_id:
-                log_message = f"Command: {command}\nUser ID: {user_id}\nUser Name: {user_name}"
-                logger.debug(f"Sending log message to admin: {log_message}")
-                try:
-                    await context.bot.send_message(chat_id=admin_user_id, text=log_message, parse_mode=ParseMode.MARKDOWN)
-                except Exception as e:
-                    logger.error(f"Failed to send log message: {e}")
-
-            return await handler(update, context, *args, **kwargs)
-        except Exception as e:
-            logger.error(f"Error: {e}")
-            return await handler(update, context, *args, **kwargs)
-    return wrapper
-
-def with_persistent_user_data(handler):
-    @wraps(handler)
-    async def wrapper(update: Update, context: CallbackContext, *args, **kwargs):
-        try:
-            user_id = update.effective_user.id
-            user_data = {
-                'user_id': user_id,
-                'username': update.effective_user.username,
-                'first_name': update.effective_user.first_name,
-                'last_name': update.effective_user.last_name,
-                'language_code': update.effective_user.language_code,
-                'last_message': update.message.text if not update.message.text.startswith('/') else None,
-                'last_command': update.message.text if update.message.text.startswith('/') else None,
-                'last_message_date': update.message.date if not update.message.text.startswith('/') else None,
-                'last_command_date': update.message.date if update.message.text.startswith('/') else None
-            }
-
-            # Update or insert persistent user data with user_data dictionary
-            await context.application.persistence.update_user_data(user_id, user_data)
-            
-            # update or insert each item of user_data dictionary in context
-            for key, value in user_data.items():
-                context.user_data[key] = value
-            
-            # flush all users data to persistence
-            await context.application.persistence.flush()
-                
-            # re-read all users data from persistence to check if data is stored correctly
-            all_users_data = await context.application.persistence.get_user_data()
-            this_user_data = context.user_data
-
-            return await handler(update, context, *args, **kwargs)
-        except Exception as e:
-            logger.error(f"Error in with_persistent_user_data: {e}")
-            return await handler(update, context, *args, **kwargs)
-    return wrapper
-
 class TelegramBotFramework:
+    
+    def with_typing_action(handler):
+        @wraps(handler)
+        async def wrapper(self, update: Update, context: CallbackContext, *args, **kwargs):
+            try:
+                logger.debug("Sending typing action")
+                await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+                return await handler(self, update, context, *args, **kwargs)
+            except Exception as e:
+                logger.error(f"Error: {e}")
+                return await handler(self, update, context, *args, **kwargs)
+        return wrapper
+
+    def with_log_admin(handler):
+        @wraps(handler)
+        async def wrapper(update: Update, context: CallbackContext, *args, **kwargs):
+            try:
+                admin_user_id = dotenv.get_key(dotenv.find_dotenv(), "ADMIN_ID_LIST")
+                user_id = update.effective_user.id
+                user_name = update.effective_user.full_name
+                command = update.message.text
+
+                if str(user_id) != admin_user_id:
+                    log_message = f"Command: {command}\nUser ID: {user_id}\nUser Name: {user_name}"
+                    logger.debug(f"Sending log message to admin: {log_message}")
+                    try:
+                        await context.bot.send_message(chat_id=admin_user_id, text=log_message, parse_mode=ParseMode.MARKDOWN)
+                    except Exception as e:
+                        logger.error(f"Failed to send log message: {e}")
+
+                return await handler(update, context, *args, **kwargs)
+            except Exception as e:
+                logger.error(f"Error: {e}")
+                return await handler(update, context, *args, **kwargs)
+        return wrapper
+
+    def with_persistent_user_data(handler):
+        @wraps(handler)
+        async def wrapper(update: Update, context: CallbackContext, *args, **kwargs):
+            try:
+                user_id = update.effective_user.id
+                user_data = {
+                    'user_id': user_id,
+                    'username': update.effective_user.username,
+                    'first_name': update.effective_user.first_name,
+                    'last_name': update.effective_user.last_name,
+                    'language_code': update.effective_user.language_code,
+                    'last_message': update.message.text if not update.message.text.startswith('/') else None,
+                    'last_command': update.message.text if update.message.text.startswith('/') else None,
+                    'last_message_date': update.message.date if not update.message.text.startswith('/') else None,
+                    'last_command_date': update.message.date if update.message.text.startswith('/') else None
+                }
+
+                # Update or insert persistent user data with user_data dictionary
+                await context.application.persistence.update_user_data(user_id, user_data)
+                
+                # update or insert each item of user_data dictionary in context
+                for key, value in user_data.items():
+                    context.user_data[key] = value
+                
+                # flush all users data to persistence
+                await context.application.persistence.flush()
+                
+                # re-read all users data from persistence to check if data is stored correctly
+                all_users_data = await context.application.persistence.get_user_data()
+                this_user_data = context.user_data
+
+                return await handler(update, context, *args, **kwargs)
+            except Exception as e:
+                logger.error(f"Error in with_persistent_user_data: {e}")
+                return await handler(update, context, *args, **kwargs)
+            return wrapper
     
     def __init__(self, token: str = None, config_filename: str = get_config_path(), env_file: Path = None):        
         
