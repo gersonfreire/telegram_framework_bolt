@@ -4,6 +4,7 @@
 __version__ = "0.1.0"
 
 import asyncio
+from functools import wraps
 import logging
 import os
 from pathlib import Path
@@ -23,12 +24,86 @@ from pathlib import Path
 import os
 import sys
 
+logger = logging.getLogger(__name__)
+
 def get_main_script_path() -> Path:
     return (Path(os.path.abspath(sys.modules['__main__'].__file__)))
 
 def get_config_path(config_filename: str = "config.yml") -> Path:
     config_path = get_main_script_path()
     return config_path.parent / config_filename
+
+def with_typing_action(handler):
+    @wraps(handler)
+    async def wrapper(update: Update, context: CallbackContext, *args, **kwargs):
+        try:
+            logger.debug("Sending typing action")
+            await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
+            return await handler(update, context, *args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return await handler(update, context, *args, **kwargs)
+    return wrapper
+
+def with_log_admin(handler):
+    @wraps(handler)
+    async def wrapper(update: Update, context: CallbackContext, *args, **kwargs):
+        try:
+            admin_user_id = dotenv.get_key(dotenv.find_dotenv(), "ADMIN_ID_LIST")
+            user_id = update.effective_user.id
+            user_name = update.effective_user.full_name
+            command = update.message.text
+
+            if str(user_id) != admin_user_id:
+                log_message = f"Command: {command}\nUser ID: {user_id}\nUser Name: {user_name}"
+                logger.debug(f"Sending log message to admin: {log_message}")
+                try:
+                    await context.bot.send_message(chat_id=admin_user_id, text=log_message, parse_mode=ParseMode.MARKDOWN)
+                except Exception as e:
+                    logger.error(f"Failed to send log message: {e}")
+
+            return await handler(update, context, *args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return await handler(update, context, *args, **kwargs)
+    return wrapper
+
+def with_persistent_user_data(handler):
+    @wraps(handler)
+    async def wrapper(update: Update, context: CallbackContext, *args, **kwargs):
+        try:
+            user_id = update.effective_user.id
+            user_data = {
+                'user_id': user_id,
+                'username': update.effective_user.username,
+                'first_name': update.effective_user.first_name,
+                'last_name': update.effective_user.last_name,
+                'language_code': update.effective_user.language_code,
+                'last_message': update.message.text if not update.message.text.startswith('/') else None,
+                'last_command': update.message.text if update.message.text.startswith('/') else None,
+                'last_message_date': update.message.date if not update.message.text.startswith('/') else None,
+                'last_command_date': update.message.date if update.message.text.startswith('/') else None
+            }
+
+            # Update or insert persistent user data with user_data dictionary
+            await context.application.persistence.update_user_data(user_id, user_data)
+            
+            # update or insert each item of user_data dictionary in context
+            for key, value in user_data.items():
+                context.user_data[key] = value
+            
+            # flush all users data to persistence
+            await context.application.persistence.flush()
+                
+            # re-read all users data from persistence to check if data is stored correctly
+            all_users_data = await context.application.persistence.get_user_data()
+            this_user_data = context.user_data
+
+            return await handler(update, context, *args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error in with_persistent_user_data: {e}")
+            return await handler(update, context, *args, **kwargs)
+    return wrapper
 
 class TelegramBotFramework:
     
@@ -87,6 +162,7 @@ class TelegramBotFramework:
     def register_command(self, name: str, description: str, response: str) -> None:
         self.commands[name] = CommandHandler(name, description, response)
 
+    @with_typing_action
     async def handle_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Generic handler for bot commands
 
@@ -106,6 +182,7 @@ class TelegramBotFramework:
             self.logger.error(f"Error handling command: {e}")
             await update.message.reply_text("An error occurred while handling the command.")
 
+    @with_typing_action
     async def handle_settings(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Configure bot settings
 
@@ -117,6 +194,7 @@ class TelegramBotFramework:
         settings_str = self.settings.display()
         await update.message.reply_text(f"⚙️ Bot Settings:\n{settings_str}")
 
+    @with_typing_action
     async def handle_list_commands(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """List available commands
 
@@ -136,6 +214,7 @@ class TelegramBotFramework:
             self.logger.error(f"Error listing commands: {e}")
             await update.message.reply_text("An error occurred while listing commands.")
 
+    @with_typing_action 
     async def cmd_git(self, update: Update, context: CallbackContext):
         """Update the bot's version from a git repository"""
         
@@ -168,6 +247,7 @@ class TelegramBotFramework:
             self.logger.error(f"Error: {e}")
             await update.message.reply_text(f"An error occurred: {e}")
 
+    @with_typing_action
     async def restart_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             await update.message.reply_text("_Restarting..._", parse_mode=ParseMode.MARKDOWN)
@@ -180,6 +260,7 @@ class TelegramBotFramework:
             self.logger.error(f"Error restarting bot: {e}")
             await update.message.reply_text(f"An error occurred while restarting the bot: {e}")
 
+    @with_typing_action 
     async def stop_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await update.message.reply_text(f"*{update._bot.username} STOPPED!*", parse_mode=ParseMode.MARKDOWN)
