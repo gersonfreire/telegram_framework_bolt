@@ -20,6 +20,7 @@ class CommandHandler:
         """
         
         try:
+            # TODO: show admin commands only to admin users
             if self.name == "help":
                 my_commands = await bot.app.bot.get_my_commands()
                 commands_dict = {
