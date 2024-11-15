@@ -17,10 +17,11 @@ async def handle_echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     await update.message.reply_text(user_message)
 
 def main():
-    # Load environment variables
-    load_dotenv(override=True)
     
-    # You may set bot token from superclass or let the baseclass get itself from environment 
+    # Load environment variables
+    # load_dotenv(override=True)
+    
+    # You may set bot token from superclass or let the baseclass itself get it from environment 
     # bot_token = os.getenv("DEFAULT_BOT_TOKEN", None) 
     
     bot = TelegramBotFramework()

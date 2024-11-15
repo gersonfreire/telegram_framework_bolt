@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.2.0"
+__version__ = "0.3.1"
 
 import asyncio
 from functools import wraps
@@ -188,11 +188,15 @@ class TelegramBotFramework:
             handler = self.commands.get(command)
             
             if handler:
-                response = await handler.get_response(self)
+                # TODO: pass the user to filter the help command
+                response = await handler.get_response(self, update, context)
                 await update.message.reply_text(response)
         except Exception as e:
-            self.logger.error(f"Error handling command: {e}")
-            await update.message.reply_text("An error occurred while handling the command.")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            error_message = f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}"
+            self.logger.error(error_message)               
+            await update.message.reply_text(error_message, parse_mode=None)
 
     @with_typing_action
     @with_log_admin
@@ -269,6 +273,13 @@ class TelegramBotFramework:
     @with_log_admin
     @with_register_user
     async def restart_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Command to restart the bot
+
+        Args:
+            update (Update): _description_
+            context (ContextTypes.DEFAULT_TYPE): _description_
+        """
+        
         try:
             await update.message.reply_text("_Restarting..._", parse_mode=ParseMode.MARKDOWN)
             args = sys.argv[:]
@@ -284,17 +295,25 @@ class TelegramBotFramework:
     @with_log_admin
     @with_register_user
     async def stop_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        
-        await update.message.reply_text(f"*{update._bot.username} STOPPED!*", parse_mode=ParseMode.MARKDOWN)
+        """Command to stop the bot
 
-        args = sys.argv[:]
-        # args.append('stop')
-        # args = ['stop']
-        args.insert(0, 'stop')
-        args=None
-        os.chdir(os.getcwd())
-        # os.execv(sys.executable, args) 
-        os.abort()        
+        Args:
+            update (Update): _description_
+            context (ContextTypes.DEFAULT_TYPE): _description_
+        """
+        
+        try:
+            await update.message.reply_text(f"*{update._bot.username} STOPPED!*", parse_mode=ParseMode.MARKDOWN)
+
+            args = sys.argv[:]
+            args.insert(0, 'stop')
+            args = None
+            os.chdir(os.getcwd())
+            os.abort()
+            
+        except Exception as e:
+            self.logger.error(f"Error stopping bot: {e}")
+            await update.message.reply_text(f"An error occurred while stopping the bot: {e}")
 
     @with_typing_action
     @with_log_admin
@@ -311,7 +330,6 @@ class TelegramBotFramework:
             self.logger.error(f"Error showing user data: {e}")
             await update.message.reply_text("An error occurred while showing user data.")
             
-
     async def post_init(self, app: Application) -> None:
         
         try:
@@ -375,16 +393,16 @@ class TelegramBotFramework:
             app.add_handler(TelegramCommandHandler(cmd_name, self.handle_command))
 
         # Register the list_commands handler
-        app.add_handler(TelegramCommandHandler("list_commands", self.handle_list_commands))
+        app.add_handler(TelegramCommandHandler("list_commands", self.handle_list_commands, filters=filters.User(user_id=self.admin_users)))
         
         # Register the Git command handler
-        app.add_handler(TelegramCommandHandler("git", self.cmd_git))
+        app.add_handler(TelegramCommandHandler("git", self.cmd_git, filters=filters.User(user_id=self.admin_users)))
         
         # Register the restart command handler
-        app.add_handler(TelegramCommandHandler("restart", self.restart_bot))
+        app.add_handler(TelegramCommandHandler("restart", self.restart_bot, filters=filters.User(user_id=self.admin_users)))
         
         # Register the stop command handler
-        app.add_handler(TelegramCommandHandler("stop", self.stop_bot))
+        app.add_handler(TelegramCommandHandler("stop", self.stop_bot, filters=filters.User(user_id=self.admin_users)))
 
         # Register the show_user_data handler
         app.add_handler(TelegramCommandHandler("show_user_data", self.show_user_data, filters=filters.User(user_id=self.admin_users)))
