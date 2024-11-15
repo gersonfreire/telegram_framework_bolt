@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 import asyncio
 from functools import wraps
@@ -188,11 +188,15 @@ class TelegramBotFramework:
             handler = self.commands.get(command)
             
             if handler:
-                response = await handler.get_response(self)
+                # TODO: pass the user to filter the help command
+                response = await handler.get_response(self, update, context)
                 await update.message.reply_text(response)
         except Exception as e:
-            self.logger.error(f"Error handling command: {e}")
-            await update.message.reply_text("An error occurred while handling the command.")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            error_message = f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}"
+            self.logger.error(error_message)               
+            await update.message.reply_text(error_message, parse_mode=None)
 
     @with_typing_action
     @with_log_admin

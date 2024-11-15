@@ -1,7 +1,7 @@
 import os
 import sys
 from typing import TYPE_CHECKING
-from telegram.ext import filters, Application
+from telegram.ext import filters, Application, ContextTypes
 
 import telegram
 
@@ -14,7 +14,7 @@ class CommandHandler:
         self.description = description
         self.response_template = response_template
 
-    async def get_response(self, bot: 'TelegramBotFramework') -> str:
+    async def get_response(self, bot: 'TelegramBotFramework', update: telegram.Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         """Generic command handler to return a response based on the command name
 
         Args:
@@ -34,11 +34,28 @@ class CommandHandler:
                 }                
                 
                 # get all handlers from application object and get the filters of each handler                
-                handlers_by_user = await self.get_handlers_by_user(bot.app)
+                global_handlers = await self.get_handlers_by_user(bot.app)
+                
+                # Get list of command names from global_handlers dictionary
+                # user_commands_from_handlers = [str]
+                # Initialize user_commands_from_handlers as a dictionary
+                user_commands_from_handlers = {}       
+                help_text_from_handlers = ''         
+                for user_id, handlers in global_handlers.items():
+                    if user_id == 0 or user_id == update.effective_user.id:
+                        for handler in handlers:
+                            user_commands_from_handlers[handler['command']] = handler['handler_info']
+                            help_text_from_handlers += f"/{handler['command']} - {handler['handler_info']['docstring']}\n"
+                
+                # Filter the handlers_by_user dictionary to include only admin users
+                # admin_handlers = {user_id: handlers for user_id, handlers in global_handlers.items() if user_id in bot.admin_users}
+                                            
+                # user_handlers = {**user_handlers, 0: global_handlers[0]}
+                # exclude duplicate keys from user_handlers
+                # user_handlers = {k: v for k, v in user_handlers.items() if k not in admin_handlers}                          
                 
                 # Get menu commands for the first admin user of admin list
                 admin_commands = await bot.app.bot.get_my_commands(scope={'type': 'chat', 'chat_id': bot.admin_users[0]}) if bot.admin_users else [] 
-                # self.all_commands = tuple(list(self.common_users_commands) + list(self.admin_commands))                 
 
                 commands_list = "\n".join(
                     f"/{cmd} - {handler.description}"
@@ -63,8 +80,11 @@ class CommandHandler:
                 return self.response_template
             
         except Exception as e:
-            # Handle or log the exception as needed
-            return f"An error occurred: {str(e)}"            
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            error_message = f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}"
+            self.logger.error(error_message)               
+            await update.message.reply_text(error_message, parse_mode=None)           
             
     async def get_handlers_by_user(self, app: 'Application') -> str:
         """Get all the filters from the registered handlers
