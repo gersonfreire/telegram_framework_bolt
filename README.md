@@ -143,6 +143,7 @@ MIT License
 
 * [X] Embed persistence to the bot framework
 * [X] Embed the settings into the bot framework
+* [ ] Set a crown at the help commands list to show which commands are admins'
 * [ ] Add a method to change settings
 * [ ] Add a command to display the settings
 * [ ] Add a command to stop the bot

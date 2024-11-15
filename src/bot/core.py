@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.3.2"
+__version__ = "0.3.3 Set a crown at the help commands list to show which commands are admins only"
 
 import asyncio
 from functools import wraps

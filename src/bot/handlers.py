@@ -37,28 +37,27 @@ class CommandHandler:
                 global_handlers = await self.get_handlers_by_user(bot.app)
                 
                 # Get list of command names from global_handlers dictionary
-                # user_commands_from_handlers = [str]
                 # Initialize user_commands_from_handlers as a dictionary
                 user_commands_from_handlers = {}       
-                help_text_from_handlers = ''         
+                help_text_from_handlers = '' 
+                        
                 for user_id, handlers in global_handlers.items():
                     if user_id == 0 or user_id == update.effective_user.id:
                         for handler in handlers:
                             try:
                                 user_commands_from_handlers[handler['command']] = handler['handler_info']
-                                help_text_from_handlers += f"/{handler['command']} - {handler['handler_info']['docstring'][0]}\n"
+                                
+                                # Set a crown at the help commands list to show which commands are admins
+                                if user_id == update.effective_user.id and update.effective_user.id in bot.admin_users:
+                                    help_text_from_handlers += f"👑 /{handler['command']} - {handler['handler_info']['docstring'][0]}\n"
+                                else:
+                                    help_text_from_handlers += f"/{handler['command']} - {handler['handler_info']['docstring'][0]}\n"
+                                    
                             except Exception as e:
                                 exc_type, exc_obj, exc_tb = sys.exc_info()
                                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                                 self.logger.error(f"Error processing command handler in {fname} at line {exc_tb.tb_lineno}: {e}")
-                
-                # Filter the handlers_by_user dictionary to include only admin users
-                # admin_handlers = {user_id: handlers for user_id, handlers in global_handlers.items() if user_id in bot.admin_users}
-                                            
-                # user_handlers = {**user_handlers, 0: global_handlers[0]}
-                # exclude duplicate keys from user_handlers
-                # user_handlers = {k: v for k, v in user_handlers.items() if k not in admin_handlers}                          
-                
+                                        
                 # Get menu commands for the first admin user of admin list
                 admin_commands = await bot.app.bot.get_my_commands(scope={'type': 'chat', 'chat_id': bot.admin_users[0]}) if bot.admin_users else [] 
 
@@ -75,7 +74,10 @@ class CommandHandler:
 
                 commands_list += "\n" + registered_commands
 
+                # TODO: wait for stable version to be aproved and remove the commented lines
+                # Legacy: using the commands dictionary to return the help text
                 # return self.response_template.format(commands=commands_list)
+                # New: using the text generated from handlers to return the help text
                 return self.response_template.format(commands=help_text_from_handlers)
 
             elif self.name == "settings":
