@@ -44,8 +44,13 @@ class CommandHandler:
                 for user_id, handlers in global_handlers.items():
                     if user_id == 0 or user_id == update.effective_user.id:
                         for handler in handlers:
-                            user_commands_from_handlers[handler['command']] = handler['handler_info']
-                            help_text_from_handlers += f"/{handler['command']} - {handler['handler_info']['docstring']}\n"
+                            try:
+                                user_commands_from_handlers[handler['command']] = handler['handler_info']
+                                help_text_from_handlers += f"/{handler['command']} - {handler['handler_info']['docstring'][0]}\n"
+                            except Exception as e:
+                                exc_type, exc_obj, exc_tb = sys.exc_info()
+                                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                                self.logger.error(f"Error processing command handler in {fname} at line {exc_tb.tb_lineno}: {e}")
                 
                 # Filter the handlers_by_user dictionary to include only admin users
                 # admin_handlers = {user_id: handlers for user_id, handlers in global_handlers.items() if user_id in bot.admin_users}
@@ -70,7 +75,8 @@ class CommandHandler:
 
                 commands_list += "\n" + registered_commands
 
-                return self.response_template.format(commands=commands_list)
+                # return self.response_template.format(commands=commands_list)
+                return self.response_template.format(commands=help_text_from_handlers)
 
             elif self.name == "settings":
                 return self.response_template.format(settings=bot.settings.display())
