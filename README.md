@@ -119,23 +119,23 @@ MIT License
 
 ## Deploy library to *Pypi* (Optional)
 
-If you do not have setuptools library installed, you must run this command in order to create the distribution package using *setup.py*:
+* If you do not have setuptools library already installed, you must run this command in order to create the distribution package using *setup.py*:
 
 `pip install setuptools`
 
-Additionally, if you do not have the *twine* tool, you will need to install it because it is the tool that uploads your package to *Pypi*:
+* Additionally, if you do not have the *twine* tool, you will need to install it because it is the tool that uploads your package to *Pypi*:
 
 `pip install twine `
 
-Now, to generate the package, check the version and other desired details on *setup.py* file and execute the following command to create the distribution folder locally:
+* Now, if already have *setuptools* installed, generate the package, check the version and other desired details on *setup.py* file and execute the following command to create the distribution folder locally:
 
 `python setup.py sdist bdist_wheel `
 
-Finally, upload the distribution package to *Pypi* with the following command, which will ask for the *Pypi* API token:
+* Finally, upload the distribution package to *Pypi* with the following command, which will ask for the *Pypi* API token:
 
 `twine upload dist/* `
 
-After deployed, your library can be installed anywhere with command, where `<library-name>` is the name set on setup.py:
+* After deployed, your library can be installed anywhere with command, where `<library-name>` is the name set on setup.py:
 
 `pip install <library-name> `
 
