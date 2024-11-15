@@ -311,7 +311,6 @@ class TelegramBotFramework:
             self.logger.error(f"Error showing user data: {e}")
             await update.message.reply_text("An error occurred while showing user data.")
             
-
     async def post_init(self, app: Application) -> None:
         
         try:
