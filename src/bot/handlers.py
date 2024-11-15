@@ -45,13 +45,16 @@ class CommandHandler:
                     if user_id == 0 or user_id == update.effective_user.id:
                         for handler in handlers:
                             try:
-                                user_commands_from_handlers[handler['command']] = handler['handler_info']
+                                # TODO: check if the command is already in the user_commands_from_handlers dictionary
+                                # if not, add it to the dictionary
+                                if handler['command'] not in user_commands_from_handlers:
+                                    user_commands_from_handlers[handler['command']] = handler['handler_info']
                                 
-                                # Set a crown at the help commands list to show which commands are admins
-                                if user_id == update.effective_user.id and update.effective_user.id in bot.admin_users:
-                                    help_text_from_handlers += f"👑 /{handler['command']} - {handler['handler_info']['docstring'][0]}\n"
-                                else:
-                                    help_text_from_handlers += f"/{handler['command']} - {handler['handler_info']['docstring'][0]}\n"
+                                    # Set a crown at the help commands list to show which commands are admins
+                                    if user_id == update.effective_user.id and update.effective_user.id in bot.admin_users:
+                                        help_text_from_handlers += f"👑 /{handler['command']} - {handler['handler_info']['docstring'][0]}\n"
+                                    else:
+                                        help_text_from_handlers += f"/{handler['command']} - {handler['handler_info']['docstring'][0]}\n"
                                     
                             except Exception as e:
                                 exc_type, exc_obj, exc_tb = sys.exc_info()
