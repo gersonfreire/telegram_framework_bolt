@@ -119,7 +119,7 @@ MIT License
 
 ## Deploy library to *Pypi* (Optional)
 
-If you do not have setuptools library installed, you must run this command in order to create the deploy package:
+If you do not have setuptools library installed, you must run this command in order to create the distribution package using *setup.py*:
 
 `pip install setuptools`
 
@@ -141,8 +141,8 @@ After deployed, your library can be installed anywhere with command, where `<lib
 
 ## TODOS:
 
-* [ ] Embed persistence to the bot framework
-* [ ] Embed the settings into the bot framework
+* [X] Embed persistence to the bot framework
+* [X] Embed the settings into the bot framework
 * [ ] Add a method to change settings
 * [ ] Add a command to display the settings
 * [ ] Add a command to stop the bot
