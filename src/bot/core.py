@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.1 Show framework version in the bot"
+__version__ = "0.4.2 Show framework version on post_init_message to admin users"
 
 import asyncio
 from functools import wraps
