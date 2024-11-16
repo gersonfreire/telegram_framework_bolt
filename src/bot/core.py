@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.3 Show framework version and user telegram id on /start and /help commands"
+__version__ = "0.4.4 auto-update tlgbotfwk library"
 
 import asyncio
 from functools import wraps
