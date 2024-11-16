@@ -337,7 +337,7 @@ class TelegramBotFramework:
     @with_log_admin
     @with_register_user
     async def list_registered_users(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """List all registered users
+        """List all registered users  
 
         Args:
             update (Update): The update object
