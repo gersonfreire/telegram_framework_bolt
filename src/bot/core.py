@@ -118,7 +118,9 @@ class TelegramBotFramework:
             
         return wrapper
     
-    def __init__(self, token: str = None, admin_users: List[int] = [], config_filename: str = get_config_path(), env_file: Path = None):        
+    def __init__(self, token: str = None, admin_users: List[int] = [], config_filename: str = get_config_path(), env_file: Path = None):     
+        
+        self.version = __version__   
         
         self.logger = logging.getLogger(__name__)
         
@@ -353,24 +355,54 @@ class TelegramBotFramework:
         except Exception as e:
             self.logger.error(f"Error listing registered users: {e}")
             await update.message.reply_text("An error occurred while listing registered users.")
-
+      
     @with_typing_action
     @with_log_admin
     @with_register_user
-    async def show_version(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """Show the current version of the TelegramBotFramework library
+    async def handle_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handle the /start command
 
         Args:
             update (Update): The update object
             context (ContextTypes.DEFAULT_TYPE): The context object
         """
         try:
-            version_message = f"TelegramBotFramework version: {__version__}"
+            user_id = update.effective_user.id
+            bot_username = (await context.bot.get_me()).username
+            start_message = (
+                f"👋 Welcome! I'm here to help you. Use /help to see available commands.\n\n"
+                f"TelegramBotFramework version: {__version__}\n"
+                f"Your Telegram ID: {user_id}\n"
+                f"Bot Username: @{bot_username}"
+            )
+            await update.message.reply_text(start_message)
+        except Exception as e:
+            self.logger.error(f"Error handling /start command: {e}")
+            await update.message.reply_text("An error occurred while handling the /start command.")
+            
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def handle_version(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handle the /version command
+
+        Args:
+            update (Update): The update object
+            context (ContextTypes.DEFAULT_TYPE): The context object
+        """
+        try:
+            user_id = update.effective_user.id
+            bot_username = (await context.bot.get_me()).username
+            version_message = (
+                f"TelegramBotFramework version: {__version__}\n"
+                f"Your Telegram ID: {user_id}\n"
+                f"Bot Username: @{bot_username}"
+            )
             await update.message.reply_text(version_message)
         except Exception as e:
-            self.logger.error(f"Error showing version: {e}")
-            await update.message.reply_text("An error occurred while showing the version.")
-            
+            self.logger.error(f"Error handling /version command: {e}")
+            await update.message.reply_text("An error occurred while handling the /version command.")
+
     async def post_init(self, app: Application) -> None:
         try:
             self.logger.info("Bot post-initialization complete!")
@@ -438,7 +470,8 @@ class TelegramBotFramework:
         app.add_handler(TelegramCommandHandler("users", self.cmd_get_users, filters=filters.User(user_id=self.admin_users)))
         
         # Register the show_version handler
-        app.add_handler(TelegramCommandHandler("version", self.show_version))
+        # app.add_handler(TelegramCommandHandler("version", self.show_version))
+        app.add_handler(TelegramCommandHandler("version", self.handle_version))
 
         # Register the external handlers
         for handler in external_handlers:
