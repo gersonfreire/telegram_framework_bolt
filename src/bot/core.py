@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.3.4 Fix duplicate commands in /help command"
+__version__ = "0.4.0 Show users registered in the bot"
 
 import asyncio
 from functools import wraps
