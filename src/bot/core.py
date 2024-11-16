@@ -110,8 +110,11 @@ class TelegramBotFramework:
                 return await handler(self, update, context, *args, **kwargs)
             
             except Exception as e:
-                logger.error(f"Error in with_persistent_user_data: {e}")
-                return await handler(self, update, context, *args, **kwargs)
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                error_message = f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}"
+                self.logger.error(error_message)               
+                await update.message.reply_text(error_message, parse_mode=None)
             
         return wrapper
     
