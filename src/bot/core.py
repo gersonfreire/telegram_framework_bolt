@@ -336,7 +336,7 @@ class TelegramBotFramework:
     @with_typing_action
     @with_log_admin
     @with_register_user
-    async def list_registered_users(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def cmd_get_users(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """List all registered users  
 
         Args:
@@ -430,6 +430,9 @@ class TelegramBotFramework:
 
         # Register the show_user_data handler
         app.add_handler(TelegramCommandHandler("show_user_data", self.show_user_data, filters=filters.User(user_id=self.admin_users)))
+        
+        # Register the list_registered_users handler
+        app.add_handler(TelegramCommandHandler("users", self.cmd_get_users, filters=filters.User(user_id=self.admin_users)))
 
         # Register the external handlers
         for handler in external_handlers:
