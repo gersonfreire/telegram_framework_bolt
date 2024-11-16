@@ -353,6 +353,20 @@ class TelegramBotFramework:
         except Exception as e:
             self.logger.error(f"Error listing registered users: {e}")
             await update.message.reply_text("An error occurred while listing registered users.")
+
+    async def show_version(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Show the current version of the TelegramBotFramework library
+
+        Args:
+            update (Update): The update object
+            context (ContextTypes.DEFAULT_TYPE): The context object
+        """
+        try:
+            version_message = f"TelegramBotFramework version: {__version__}"
+            await update.message.reply_text(version_message)
+        except Exception as e:
+            self.logger.error(f"Error showing version: {e}")
+            await update.message.reply_text("An error occurred while showing the version.")
             
     async def post_init(self, app: Application) -> None:
         
