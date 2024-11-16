@@ -372,47 +372,33 @@ class TelegramBotFramework:
             await update.message.reply_text("An error occurred while showing the version.")
             
     async def post_init(self, app: Application) -> None:
-        
         try:
             self.logger.info("Bot post-initialization complete!")
             admin_users = self.config['bot'].get('admin_users', [])
+            bot_username = (await app.bot.get_me()).username
+            version_message = f"Bot post-initialization complete!\nVersion: {__version__}\nBot Username: @{bot_username}"
             for admin_id in admin_users:
                 try:
-                    await app.bot.send_message(chat_id=admin_id, text="Bot post-initialization complete!")
+                    await app.bot.send_message(chat_id=admin_id, text=version_message)
                 except Exception as e:
                     self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
-
             # Set bot commands dynamically
             bot_commands = [
-            (f"/{cmd}", handler.description)
-            for cmd, handler in self.commands.items()
+                (f"/{cmd}", handler.description)
+                for cmd, handler in self.commands.items()
             ]
-            await app.bot.set_my_commands(bot_commands)        
-
+            await app.bot.set_my_commands(bot_commands)
             my_commands = await app.bot.get_my_commands()
             commands_dict = {
-            cmd.command: cmd.description or app.bot.commands[cmd.command].__doc__
-            for cmd in my_commands
+                cmd.command: cmd.description or app.bot.commands[cmd.command].__doc__
+                for cmd in my_commands
             }
-
             registered_handlers = [handler.callback.__name__ for handler in app.handlers[0]]
-
             registered_handlers = [
-            f"{handler.callback.__name__}: {', '.join(handler.commands)}"
-            for handler in app.handlers[0] if hasattr(handler, 'commands')
+                f"{handler.callback.__name__}: {', '.join(handler.commands)}"
+                for handler in app.handlers[0] if hasattr(handler, 'commands')
             ]
-
-            for handler in app.handlers[0]:
-                if hasattr(handler, 'commands'):
-                    docstring = handler.callback.__doc__.split('\n')[0] if handler.callback.__doc__ else "No docstring available"
-                    self.registered_handlers[', '.join(handler.commands)] = {
-                    'handler': handler.callback.__name__,
-                    'command': ', '.join(handler.commands),
-                    'docstring': docstring
-                    }
-
             self.logger.info(f"Registered handlers: {registered_handlers}")
-            
         except Exception as e:
             self.logger.error(f"Error during post-initialization: {e}")
 
