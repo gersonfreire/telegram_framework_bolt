@@ -354,6 +354,9 @@ class TelegramBotFramework:
             self.logger.error(f"Error listing registered users: {e}")
             await update.message.reply_text("An error occurred while listing registered users.")
 
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
     async def show_version(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Show the current version of the TelegramBotFramework library
 
@@ -447,6 +450,9 @@ class TelegramBotFramework:
         
         # Register the list_registered_users handler
         app.add_handler(TelegramCommandHandler("users", self.cmd_get_users, filters=filters.User(user_id=self.admin_users)))
+        
+        # Register the show_version handler
+        app.add_handler(TelegramCommandHandler("version", self.show_version))
 
         # Register the external handlers
         for handler in external_handlers:
