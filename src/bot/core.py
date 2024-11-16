@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.2 Show framework version on post_init_message to admin users"
+__version__ = "0.4.3 Show framework version and user telegram id on /start and /help commands"
 
 import asyncio
 from functools import wraps
