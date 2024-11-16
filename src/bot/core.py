@@ -332,6 +332,27 @@ class TelegramBotFramework:
         except Exception as e:
             self.logger.error(f"Error showing user data: {e}")
             await update.message.reply_text("An error occurred while showing user data.")
+
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def list_registered_users(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """List all registered users
+
+        Args:
+            update (Update): The update object
+            context (ContextTypes.DEFAULT_TYPE): The context object
+        """
+        try:
+            users_data = await context.application.persistence.get_user_data()
+            users_list = "\n".join(
+                f"User ID: {user_id}, Username: {user_data.get('username', 'N/A')}, First Name: {user_data.get('first_name', 'N/A')}, Last Name: {user_data.get('last_name', 'N/A')}"
+                for user_id, user_data in users_data.items()
+            )
+            await update.message.reply_text(f"Registered Users:\n{users_list}")
+        except Exception as e:
+            self.logger.error(f"Error listing registered users: {e}")
+            await update.message.reply_text("An error occurred while listing registered users.")
             
     async def post_init(self, app: Application) -> None:
         
