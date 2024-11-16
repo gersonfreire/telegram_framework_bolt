@@ -403,12 +403,33 @@ class TelegramBotFramework:
             self.logger.error(f"Error handling /version command: {e}")
             await update.message.reply_text("An error occurred while handling the /version command.")
 
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def update_library(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handle the /update_library command to update the tlgbotfwk library
+
+        Args:
+            update (Update): The update object
+            context (ContextTypes.DEFAULT_TYPE): The context object
+        """
+        try:
+            await update.message.reply_text("Updating the tlgbotfwk library...")
+
+            # Execute the pip install command
+            result = os.popen("pip install --upgrade tlgbotfwk").read()
+
+            await update.message.reply_text(f"Update result:\n{result}")
+        except Exception as e:
+            self.logger.error(f"Error updating tlgbotfwk library: {e}")
+            await update.message.reply_text("An error occurred while updating the tlgbotfwk library.")
+
     async def post_init(self, app: Application) -> None:
         try:
             self.logger.info("Bot post-initialization complete!")
             admin_users = self.config['bot'].get('admin_users', [])
             bot_username = (await app.bot.get_me()).username
-            version_message = f"Bot post-initialization complete!\nVersion: {__version__}\nBot Username: @{bot_username}"
+            version_message = f"Bot post-initialization complete!\nVersion: {__version__}\nBot Username: @{bot_username}\nRun /help to see available commands."
             for admin_id in admin_users:
                 try:
                     await app.bot.send_message(chat_id=admin_id, text=version_message)
@@ -472,6 +493,9 @@ class TelegramBotFramework:
         # Register the show_version handler
         # app.add_handler(TelegramCommandHandler("version", self.show_version))
         app.add_handler(TelegramCommandHandler("version", self.handle_version))
+
+        # Register the update_library handler
+        app.add_handler(TelegramCommandHandler("update_library", self.update_library, filters=filters.User(user_id=self.admin_users)))
 
         # Register the external handlers
         for handler in external_handlers:
