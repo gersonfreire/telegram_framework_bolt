@@ -507,7 +507,7 @@ class TelegramBotFramework:
             # Stop and delete all running jobs
             self.job_queue.stop()
             # self.scheduler.shutdown(wait=wait).
-            self.job_queue.jobs.clear()            
+            self.job_queue.scheduler.remove_all_jobs()
             
             # Restart the job with the new interval
             self.job_queue = self.job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)
