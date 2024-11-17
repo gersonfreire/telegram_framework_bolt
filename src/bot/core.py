@@ -7,6 +7,7 @@ __version__ = "0.4.18 show hostname and script path on version command"
 full command line on show version and post init only for admins
 Change interval status
 Clear and update telegram command menu from handlers
+get external ip address on version command instead of internal local ip address
 """
 
 import asyncio
@@ -19,6 +20,7 @@ from typing import Dict, Optional, List
 from dotenv import load_dotenv
 import dotenv
 import socket
+import requests
 
 import yaml
 from telegram import Update
@@ -140,6 +142,7 @@ class TelegramBotFramework:
         self.logger.debug(f"The main script folder path is: {main_script_path}")                
         
         # Get bot token from environment but overwrite it if it is provided inside .env file
+        # main_script_path = Path(get_main_script_path() or os.path.abspath(__file__))
         self.env_file = main_script_path.parent / ".env" or env_file
         load_dotenv(override=True, dotenv_path=str(self.env_file))
         env_token = os.getenv("DEFAULT_BOT_TOKEN")
@@ -418,11 +421,15 @@ class TelegramBotFramework:
                 command_line = " ".join(sys.argv)
                 hostname = socket.gethostname()
                 ip_address = socket.gethostbyname(hostname)
+                try:
+                    external_ip = requests.get('https://api.ipify.org').text
+                except requests.RequestException as e:
+                    external_ip = ip_address
                 version_message += (
                     f"\nMain Script Path: {main_script_path}"
                     f"\nCommand Line: {command_line}"
                     f"\nHostname: {hostname}"
-                    f"\nIP Address: {ip_address}"
+                    f"\nServer IP Address: {external_ip}"
                 )
             
             await update.message.reply_text(version_message)
