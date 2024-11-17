@@ -3,7 +3,7 @@
 
 __version__ = "0.4.19 show hostname and script path on version command"
 
-"""TODOS
+"""TODO's:
 full command line on show version and post init only for admins
 Change interval status
 Clear and update telegram command menu from handlers
