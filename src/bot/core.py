@@ -40,12 +40,13 @@ def get_config_path(config_filename: str = "config.yml") -> Path:
 class TelegramBotFramework:
     
     async def send_status_message(self, context: CallbackContext) -> None:
-        for chat_id in self.admin_users:
-            try:
-                await context.bot.send_message(chat_id=chat_id, text="The bot is still active.")
-            except Exception as e:
-                self.logger.error(f"Failed to send status message to admin {chat_id}: {e}")    
-    
+        if self.status_message_enabled:
+            for chat_id in self.admin_users:
+                try:
+                    await context.bot.send_message(chat_id=chat_id, text="The bot is still active.")
+                except Exception as e:
+                    self.logger.error(f"Failed to send status message to admin {chat_id}: {e}")    
+      
     def with_typing_action(handler):
         @wraps(handler)
         async def wrapper(self, update: Update, context: CallbackContext, *args, **kwargs):
@@ -155,6 +156,9 @@ class TelegramBotFramework:
         self._load_config()
         self._setup_logging()
         self._register_default_commands()
+        
+        # Initialize the status message flag
+        self.status_message_enabled = True
 
     def _load_config(self) -> None:
         if not self.config_path.exists():
@@ -430,7 +434,25 @@ class TelegramBotFramework:
         except Exception as e:
             self.logger.error(f"Error updating tlgbotfwk library: {e}")
             await update.message.reply_text("An error occurred while updating the tlgbotfwk library.")
+   
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def toggle_status_message(self, update: Update, context: CallbackContext) -> None:
+        """Toggle the status message on or off to indicate whether the bot is active.
 
+        Args:
+            update (Update): _description_
+            context (CallbackContext): _description_
+        """
+        user_id = update.effective_user.id
+        if user_id in self.admin_users:
+            self.status_message_enabled = not self.status_message_enabled
+            status = "enabled" if self.status_message_enabled else "disabled"
+            await update.message.reply_text(f"Status message has been {status}.")
+        else:
+            await update.message.reply_text("You are not authorized to use this command.")
+            
     async def post_init(self, app: Application) -> None:
         try:
             self.logger.info("Bot post-initialization complete!")
@@ -508,6 +530,9 @@ class TelegramBotFramework:
         for handler in external_handlers:
             app.add_handler(TelegramCommandHandler("echo", handler), group=-1)
 
+        # Register the toggle command
+        app.add_handler(TelegramCommandHandler('toggle_status', self.toggle_status_message, filters=filters.User(user_id=self.admin_users)))
+
         self.logger.info("Bot started successfully!")
         
         self.app = app
@@ -520,4 +545,3 @@ class TelegramBotFramework:
         
         # Call post_init after initializing the bot
         app.run_polling()
-       
