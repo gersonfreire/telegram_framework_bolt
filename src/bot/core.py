@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.11 auto-update tlgbotfwk library"
+__version__ = "0.4.12 auto-update tlgbotfwk library"
 
 import asyncio
 from functools import wraps

@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="tlgbotfwk",
-    version="0.4.11",  # Incremented version
+    name='tlgbotfwk',
+    version='0.4.12',  # Incremented version
     description='A powerful and extensible Python-based Telegram bot framework',
     author='Maker',
     author_email='youremail@example.com',
@@ -13,4 +13,5 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],
+    python_requires='>=3.6',
 )
