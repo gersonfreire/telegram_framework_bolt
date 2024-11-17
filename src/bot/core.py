@@ -478,6 +478,40 @@ class TelegramBotFramework:
             await update.message.reply_text(f"Status message has been {status}.")
         else:
             await update.message.reply_text("You are not authorized to use this command.")
+          
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def change_status_interval(self, update: Update, context: CallbackContext) -> None:
+        """Change the interval for sending status messages and restart the job
+
+        Args:
+            update (Update): The update object
+            context (CallbackContext): The context object
+        """
+        try:
+            user_id = update.effective_user.id
+            if user_id not in self.admin_users:
+                await update.message.reply_text("You are not authorized to use this command.")
+                return
+            
+            # Get the new interval from the command arguments
+            args = context.args
+            if not args or not args[0].isdigit():
+                await update.message.reply_text("Please provide a valid interval in minutes.")
+                return
+            
+            new_interval = int(args[0]) * 60  # Convert minutes to seconds
+            self.send_status_interval = new_interval
+            
+            # Restart the job with the new interval
+            self.job_queue.stop()
+            self.job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)
+            
+            await update.message.reply_text(f"Status message interval has been changed to {args[0]} minutes.")
+        except Exception as e:
+            self.logger.error(f"Error changing status interval: {e}")
+            await update.message.reply_text("An error occurred while changing the status interval.")
             
     async def post_init(self, app: Application) -> None:
         """Post-initialization tasks for the bot
@@ -577,6 +611,9 @@ class TelegramBotFramework:
 
         # Register the toggle command
         app.add_handler(TelegramCommandHandler('toggle_status', self.toggle_status_message, filters=filters.User(user_id=self.admin_users)))
+        
+        # Register the change_status_interval command handler
+        app.add_handler(TelegramCommandHandler("change_status_interval", self.change_status_interval, filters=filters.User(user_id=self.admin_users)))        
 
         self.logger.info("Bot started successfully!")
         
