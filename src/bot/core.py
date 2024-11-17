@@ -474,16 +474,40 @@ class TelegramBotFramework:
             await update.message.reply_text("You are not authorized to use this command.")
             
     async def post_init(self, app: Application) -> None:
+        """Post-initialization tasks for the bot
+
+        Args:
+            app (Application): The application object
+        """
         try:
             self.logger.info("Bot post-initialization complete!")
             admin_users = self.config['bot'].get('admin_users', [])
             bot_username = (await app.bot.get_me()).username
-            version_message = f"Bot post-initialization complete!\nVersion: {__version__}\nBot Username: @{bot_username}\nRun /help to see available commands."
+            version_message = (
+                f"Bot post-initialization complete!\n"
+                f"Version: {__version__}\n"
+                f"Bot Username: @{bot_username}\n"
+                f"Run /help to see available commands."
+            )
+            
+            if admin_users:
+                main_script_path = get_main_script_path()
+                command_line = " ".join(sys.argv)
+                hostname = socket.gethostname()
+                ip_address = socket.gethostbyname(hostname)
+                version_message += (
+                    f"\nMain Script Path: {main_script_path}"
+                    f"\nCommand Line: {command_line}"
+                    f"\nHostname: {hostname}"
+                    f"\nIP Address: {ip_address}"
+                )
+            
             for admin_id in admin_users:
                 try:
                     await app.bot.send_message(chat_id=admin_id, text=version_message)
                 except Exception as e:
                     self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
+            
             # Set bot commands dynamically
             bot_commands = [
                 (f"/{cmd}", handler.description)
@@ -495,12 +519,7 @@ class TelegramBotFramework:
                 cmd.command: cmd.description or app.bot.commands[cmd.command].__doc__
                 for cmd in my_commands
             }
-            registered_handlers = [handler.callback.__name__ for handler in app.handlers[0]]
-            registered_handlers = [
-                f"{handler.callback.__name__}: {', '.join(handler.commands)}"
-                for handler in app.handlers[0] if hasattr(handler, 'commands')
-            ]
-            self.logger.info(f"Registered handlers: {registered_handlers}")
+            self.logger.info(f"Registered commands: {commands_dict}")
         except Exception as e:
             self.logger.error(f"Error during post-initialization: {e}")
 
