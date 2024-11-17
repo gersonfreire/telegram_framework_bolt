@@ -3,6 +3,12 @@
 
 __version__ = "0.4.16 show hostname and script path on version command"
 
+"""TODOS
+full command line on show version and post init only for admins
+Change interval status
+Clear and update telegram command menu from handlers
+"""
+
 import asyncio
 from functools import wraps
 import logging
@@ -12,6 +18,7 @@ import sys
 from typing import Dict, Optional, List
 from dotenv import load_dotenv
 import dotenv
+import socket
 
 import yaml
 from telegram import Update
@@ -409,6 +416,19 @@ class TelegramBotFramework:
                 f"Your Telegram ID: {user_id}\n"
                 f"Bot Username: @{bot_username}"
             )
+            
+            if user_id in self.admin_users:
+                main_script_path = get_main_script_path()
+                command_line = " ".join(sys.argv)
+                hostname = socket.gethostname()
+                ip_address = socket.gethostbyname(hostname)
+                version_message += (
+                    f"\nMain Script Path: {main_script_path}"
+                    f"\nCommand Line: {command_line}"
+                    f"\nHostname: {hostname}"
+                    f"\nIP Address: {ip_address}"
+                )
+            
             await update.message.reply_text(version_message)
         except Exception as e:
             self.logger.error(f"Error handling /version command: {e}")
