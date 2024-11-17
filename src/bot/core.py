@@ -38,7 +38,8 @@ import sys
 # import bot.util_decorators as util_decorators
 
 logger = logging.getLogger(__name__)
-def get_main_script_path() -> Path: ...
+def get_main_script_path() -> Path: 
+    return (Path(os.path.abspath(sys.modules['__main__'].__file__)))
 
 def get_config_path(config_filename: str = "config.yml") -> Path: ...
 
