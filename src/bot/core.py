@@ -16,7 +16,7 @@ import dotenv
 import yaml
 from telegram import Update
 from telegram.constants import ChatAction
-from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes, PicklePersistence, CallbackContext, filters
+from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes, PicklePersistence, CallbackContext, filters, JobQueue
 from telegram.constants import ParseMode
 
 from .handlers import CommandHandler
@@ -38,6 +38,13 @@ def get_config_path(config_filename: str = "config.yml") -> Path:
     return config_path.parent / config_filename
 
 class TelegramBotFramework:
+    
+    async def send_status_message(self, context: CallbackContext) -> None:
+        for chat_id in self.admin_users:
+            try:
+                await context.bot.send_message(chat_id=chat_id, text="The bot is still active.")
+            except Exception as e:
+                self.logger.error(f"Failed to send status message to admin {chat_id}: {e}")    
     
     def with_typing_action(handler):
         @wraps(handler)
@@ -504,6 +511,13 @@ class TelegramBotFramework:
         self.logger.info("Bot started successfully!")
         
         self.app = app
+
+        # Add job to send status message every 30 minutes
+        self.send_status_interval = 1 * 60
+        job_queue: JobQueue = self.app.job_queue
+        job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)    
+        self.job_queue = job_queue    
         
         # Call post_init after initializing the bot
         app.run_polling()
+       
