@@ -1,14 +1,13 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='tlgbotfwk',  # Replace with your own package name
-    version='0.4.5',
+    name="tlgbotfwk",
+    version="0.4.6",
     description='A powerful and extensible Python-based Telegram bot framework',
     author='Maker',
     author_email='youremail@example.com',
     url='https://github.com/gersonfreire/telegram_framework_bolt',  # Replace with your repository URL
-    packages=find_packages(where='src'),
-    package_dir={'': 'src'},
+    packages=find_packages(),
     install_requires=[
         'python-telegram-bot>=20.7',
         'python-dotenv>=1.0.0',
