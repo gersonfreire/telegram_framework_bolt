@@ -505,8 +505,13 @@ class TelegramBotFramework:
             self.send_status_interval = new_interval
             
             # Restart the job with the new interval
+            # self.scheduler.shutdown(wait=wait). 
             self.job_queue.stop()
-            self.job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)
+            self.job_queue = self.job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)
+            # self.send_status_interval = 1 * 60
+            # job_queue: JobQueue = self.app.job_queue
+            # job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)    
+            # self.job_queue = job_queue               
             
             await update.message.reply_text(f"Status message interval has been changed to {args[0]} minutes.")
         except Exception as e:
