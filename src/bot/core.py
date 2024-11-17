@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.17 show hostname and script path on version command"
+__version__ = "0.4.18 show hostname and script path on version command"
 
 """TODOS
 full command line on show version and post init only for admins
@@ -36,13 +36,9 @@ import sys
 # import bot.util_decorators as util_decorators
 
 logger = logging.getLogger(__name__)
+def get_main_script_path() -> Path: ...
 
-def get_main_script_path() -> Path:
-    return (Path(os.path.abspath(sys.modules['__main__'].__file__)))
-
-def get_config_path(config_filename: str = "config.yml") -> Path:
-    config_path = get_main_script_path()
-    return config_path.parent / config_filename
+def get_config_path(config_filename: str = "config.yml") -> Path: ...
 
 class TelegramBotFramework:
     
