@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.16 auto-update tlgbotfwk library"
+__version__ = "0.4.16 show hostname and script path on version command"
 
 import asyncio
 from functools import wraps
