@@ -41,6 +41,7 @@ ENV/
 config.yml
 your_bot_name_bot_data
 .env copy
+src/examples/tlgfwk_test/README_PROD.md
 src/remove_pypi.bat
-src/remove_pypi.py
 src/remove_pypi.sh
+src/remove_pypi.py

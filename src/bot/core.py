@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.2 Show framework version on post_init_message to admin users"
+__version__ = "0.4.16 auto-update tlgbotfwk library"
 
 import asyncio
 from functools import wraps
@@ -16,7 +16,7 @@ import dotenv
 import yaml
 from telegram import Update
 from telegram.constants import ChatAction
-from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes, PicklePersistence, CallbackContext, filters
+from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes, PicklePersistence, CallbackContext, filters, JobQueue
 from telegram.constants import ParseMode
 
 from .handlers import CommandHandler
@@ -39,6 +39,14 @@ def get_config_path(config_filename: str = "config.yml") -> Path:
 
 class TelegramBotFramework:
     
+    async def send_status_message(self, context: CallbackContext) -> None:
+        if self.status_message_enabled:
+            for chat_id in self.admin_users:
+                try:
+                    await context.bot.send_message(chat_id=chat_id, text="The bot is still active.")
+                except Exception as e:
+                    self.logger.error(f"Failed to send status message to admin {chat_id}: {e}")    
+      
     def with_typing_action(handler):
         @wraps(handler)
         async def wrapper(self, update: Update, context: CallbackContext, *args, **kwargs):
@@ -118,7 +126,9 @@ class TelegramBotFramework:
             
         return wrapper
     
-    def __init__(self, token: str = None, admin_users: List[int] = [], config_filename: str = get_config_path(), env_file: Path = None):        
+    def __init__(self, token: str = None, admin_users: List[int] = [], config_filename: str = get_config_path(), env_file: Path = None):     
+        
+        self.version = __version__   
         
         self.logger = logging.getLogger(__name__)
         
@@ -146,6 +156,9 @@ class TelegramBotFramework:
         self._load_config()
         self._setup_logging()
         self._register_default_commands()
+        
+        # Initialize the status message flag
+        self.status_message_enabled = True
 
     def _load_config(self) -> None:
         if not self.config_path.exists():
@@ -353,30 +366,99 @@ class TelegramBotFramework:
         except Exception as e:
             self.logger.error(f"Error listing registered users: {e}")
             await update.message.reply_text("An error occurred while listing registered users.")
-
+      
     @with_typing_action
     @with_log_admin
     @with_register_user
-    async def show_version(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """Show the current version of the TelegramBotFramework library
+    async def handle_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handle the /start command
 
         Args:
             update (Update): The update object
             context (ContextTypes.DEFAULT_TYPE): The context object
         """
         try:
-            version_message = f"TelegramBotFramework version: {__version__}"
+            user_id = update.effective_user.id
+            bot_username = (await context.bot.get_me()).username
+            start_message = (
+                f"👋 Welcome! I'm here to help you. Use /help to see available commands.\n\n"
+                f"TelegramBotFramework version: {__version__}\n"
+                f"Your Telegram ID: {user_id}\n"
+                f"Bot Username: @{bot_username}"
+            )
+            await update.message.reply_text(start_message)
+        except Exception as e:
+            self.logger.error(f"Error handling /start command: {e}")
+            await update.message.reply_text("An error occurred while handling the /start command.")
+            
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def handle_version(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handle the /version command
+
+        Args:
+            update (Update): The update object
+            context (ContextTypes.DEFAULT_TYPE): The context object
+        """
+        try:
+            user_id = update.effective_user.id
+            bot_username = (await context.bot.get_me()).username
+            version_message = (
+                f"TelegramBotFramework version: {__version__}\n"
+                f"Your Telegram ID: {user_id}\n"
+                f"Bot Username: @{bot_username}"
+            )
             await update.message.reply_text(version_message)
         except Exception as e:
-            self.logger.error(f"Error showing version: {e}")
-            await update.message.reply_text("An error occurred while showing the version.")
+            self.logger.error(f"Error handling /version command: {e}")
+            await update.message.reply_text("An error occurred while handling the /version command.")
+
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def update_library(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handle the /update_library command to update the tlgbotfwk library
+
+        Args:
+            update (Update): The update object
+            context (ContextTypes.DEFAULT_TYPE): The context object
+        """
+        try:
+            await update.message.reply_text("Updating the tlgbotfwk library...")
+
+            # Execute the pip install command
+            result = os.popen("pip install --upgrade tlgbotfwk").read()
+
+            await update.message.reply_text(f"Update result:\n{result}")
+        except Exception as e:
+            self.logger.error(f"Error updating tlgbotfwk library: {e}")
+            await update.message.reply_text("An error occurred while updating the tlgbotfwk library.")
+   
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def toggle_status_message(self, update: Update, context: CallbackContext) -> None:
+        """Toggle the status message on or off to indicate whether the bot is active.
+
+        Args:
+            update (Update): _description_
+            context (CallbackContext): _description_
+        """
+        user_id = update.effective_user.id
+        if user_id in self.admin_users:
+            self.status_message_enabled = not self.status_message_enabled
+            status = "enabled" if self.status_message_enabled else "disabled"
+            await update.message.reply_text(f"Status message has been {status}.")
+        else:
+            await update.message.reply_text("You are not authorized to use this command.")
             
     async def post_init(self, app: Application) -> None:
         try:
             self.logger.info("Bot post-initialization complete!")
             admin_users = self.config['bot'].get('admin_users', [])
             bot_username = (await app.bot.get_me()).username
-            version_message = f"Bot post-initialization complete!\nVersion: {__version__}\nBot Username: @{bot_username}"
+            version_message = f"Bot post-initialization complete!\nVersion: {__version__}\nBot Username: @{bot_username}\nRun /help to see available commands."
             for admin_id in admin_users:
                 try:
                     await app.bot.send_message(chat_id=admin_id, text=version_message)
@@ -438,15 +520,28 @@ class TelegramBotFramework:
         app.add_handler(TelegramCommandHandler("users", self.cmd_get_users, filters=filters.User(user_id=self.admin_users)))
         
         # Register the show_version handler
-        app.add_handler(TelegramCommandHandler("version", self.show_version))
+        # app.add_handler(TelegramCommandHandler("version", self.show_version))
+        app.add_handler(TelegramCommandHandler("version", self.handle_version))
+
+        # Register the update_library handler
+        app.add_handler(TelegramCommandHandler("update_library", self.update_library, filters=filters.User(user_id=self.admin_users)))
 
         # Register the external handlers
         for handler in external_handlers:
             app.add_handler(TelegramCommandHandler("echo", handler), group=-1)
 
+        # Register the toggle command
+        app.add_handler(TelegramCommandHandler('toggle_status', self.toggle_status_message, filters=filters.User(user_id=self.admin_users)))
+
         self.logger.info("Bot started successfully!")
         
         self.app = app
+
+        # Add job to send status message every 30 minutes
+        self.send_status_interval = 1 * 60
+        job_queue: JobQueue = self.app.job_queue
+        job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)    
+        self.job_queue = job_queue    
         
         # Call post_init after initializing the bot
         app.run_polling()

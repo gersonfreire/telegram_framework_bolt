@@ -87,6 +87,8 @@ class CommandHandler:
                 return self.response_template.format(settings=bot.settings.display())
             elif self.name == "echo":
                 return self.response_template.format(message='echo')
+            elif self.name == "start":
+                return self.response_template.format(bot_username=f'@{bot.app.bot.username}', version=bot.version, user_id=update.effective_user.id, username=update.effective_user.username if update.effective_user.username else '[unknown user name]')
             else:
                 return self.response_template
             
