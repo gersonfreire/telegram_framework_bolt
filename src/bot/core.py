@@ -425,7 +425,7 @@ class TelegramBotFramework:
                 hostname = socket.gethostname()
                 ip_address = socket.gethostbyname(hostname)
                 try:
-                    external_ip = requests.get('https://api.ipify.org').text
+                    external_ip = requests.get('https://api.ipify.org', timeout=5).text
                 except requests.RequestException as e:
                     external_ip = ip_address
                 version_message += (
