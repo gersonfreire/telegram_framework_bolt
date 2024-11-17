@@ -1,6 +1,6 @@
 # Telegram Bot Framework Test (Production environment)
 
-This is a Proof of Concept (POC) for the [Telegram Bot Framework](https://github.com/gersonfreire/telegram_framework_bolt) which in turn is the new and stable version of this [legacy](https://github.com/gersonfreire/telegram-bot-framework) framework
+This is a Proof of Concept (POC) for the [Telegram Bot Framework](https://github.com/gersonfreire/telegram_framework_bolt) which in turn is the new and stable version of this [legacy](https://github.com/gersonfreire/telegram-bot-framework) framework  
 
 [Telegram Bot Framework](https://github.com/gersonfreire/telegram_framework_bolt) is a powerful and extensible Telegram bot framework designed for monitoring remote hosts and providing various utilities. This project leverages the `python-telegram-bot` library and provides a simple way to create and manage Telegram bots.
 

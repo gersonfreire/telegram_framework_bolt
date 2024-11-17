@@ -41,3 +41,4 @@ ENV/
 config.yml
 your_bot_name_bot_data
 .env copy
+src/examples/tlgfwk_test/README_PROD.md
