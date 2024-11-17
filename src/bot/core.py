@@ -24,7 +24,7 @@ SetuptoolsDeprecationWarning: setup.py install is deprecated.
 !!
 """
 
-__version__ = "0.4.6 auto-update tlgbotfwk library"
+__version__ = "0.4.7 auto-update tlgbotfwk library"
 
 import asyncio
 from functools import wraps
