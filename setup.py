@@ -7,7 +7,8 @@ setup(
     author='Maker',
     author_email='youremail@example.com',
     url='https://github.com/gersonfreire/telegram_framework_bolt',  # Replace with your repository URL
-    packages=find_packages(),
+    packages=find_packages(where='src'),
+    package_dir={'': 'src'},
     install_requires=[
         'python-telegram-bot>=20.7',
         'python-dotenv>=1.0.0',
