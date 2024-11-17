@@ -1,29 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" setuptools entry point for the project.
-
-Raises:
-    ValueError: _description_
-    FileNotFoundError: _description_
-
-Returns:
-    _type_: _description_
-    
-SetuptoolsDeprecationWarning: setup.py install is deprecated.
-!!
-
-        ********************************************************************************
-        Please avoid running ``setup.py`` directly.
-        Instead, use pypa/build, pypa/installer or other
-        standards-based tools.
-
-        See https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html for details.
-        ********************************************************************************
-
-!!
-"""
-
 __version__ = "0.4.7 auto-update tlgbotfwk library"
 
 import asyncio
