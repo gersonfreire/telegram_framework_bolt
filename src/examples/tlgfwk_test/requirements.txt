@@ -1,0 +1,35 @@
+# requirements.txt
+
+anyio==4.6.2.post1
+blinker==1.9.0
+certifi==2024.8.30
+cffi==1.17.1
+charset-normalizer==3.4.0
+click==8.1.7
+colorama==0.4.6
+cryptography==43.0.3
+Flask==3.1.0
+h11==0.14.0
+httpcore==1.0.6
+httpx==0.27.2
+idna==3.10
+itsdangerous==2.2.0
+Jinja2==3.1.4
+MarkupSafe==3.0.2
+paypalrestsdk==1.13.3
+pycparser==2.22
+pyOpenSSL==24.2.1
+python-dotenv==1.0.1
+python-telegram-bot==21.7
+PyYAML==6.0.2
+requests==2.32.3
+six==1.16.0
+sniffio==1.3.1
+
+# tlgbotfwk==0.1.0
+tlgbotfwk
+# tlgfwk==0.9.8
+# tlgfwk
+
+urllib3==2.2.3
+Werkzeug==3.1.3
