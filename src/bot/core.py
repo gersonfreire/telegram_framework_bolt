@@ -30,6 +30,7 @@ from telegram.constants import ParseMode
 
 from .handlers import CommandHandler
 from .settings import Settings
+from .util_functions import call_function
 
 from pathlib import Path
 import os
@@ -517,6 +518,41 @@ class TelegramBotFramework:
             self.logger.error(f"Error changing status interval: {e}")
             await update.message.reply_text("An error occurred while changing the status interval.")
             
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def call_function_command(self, update: Update, context: CallbackContext) -> None:
+        """Admin-only command to call a function dynamically
+
+        Args:
+            update (Update): The update object
+            context (CallbackContext): The context object
+        """
+        try:
+            user_id = update.effective_user.id
+            if user_id not in self.admin_users:
+                await update.message.reply_text("You are not authorized to use this command.")
+                return
+            
+            # Get the module name, function name, and function parameters from the command arguments
+            args = context.args
+            if len(args) < 3:
+                await update.message.reply_text("Please provide the module name, function name, and function parameters.")
+                return
+            
+            module_name = args[0]
+            function_name = args[1]
+            function_params = " ".join(args[2:])
+            
+            # Call the function using the call_function utility
+            result = call_function(module_name, function_name, function_params)
+            
+            # Send the result back to the user
+            await update.message.reply_text(f"Result: {result}")
+        except Exception as e:
+            self.logger.error(f"Error calling function: {e}")
+            await update.message.reply_text("An error occurred while calling the function.")
+    
     async def post_init(self, app: Application) -> None:
         """Post-initialization tasks for the bot
 
@@ -618,6 +654,9 @@ class TelegramBotFramework:
         
         # Register the change_status_interval command handler
         app.add_handler(TelegramCommandHandler("change_status_interval", self.change_status_interval, filters=filters.User(user_id=self.admin_users)))        
+
+        # Register the call_function_command handler
+        app.add_handler(TelegramCommandHandler("call_function", self.call_function_command, filters=filters.User(user_id=self.admin_users)))
 
         self.logger.info("Bot started successfully!")
         
