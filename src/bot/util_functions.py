@@ -28,6 +28,18 @@ def call_function(module_name: str, function_name: str, function_params: str) ->
     except Exception as e:
         return f"Error: {e}"
 
+def hello_world(name: str) -> str:
+    """
+    Return a greeting message.
+
+    Args:
+        name (str): The name to include in the greeting.
+
+    Returns:
+        str: The greeting message.
+    """
+    return f"Hello, {name}!"
+
 # Example usage
 if __name__ == "__main__":
     module_name = "math"
@@ -35,3 +47,10 @@ if __name__ == "__main__":
     function_params = "(2, 3)"  # Parameters as a string
     result = call_function(module_name, function_name, function_params)
     print(result)  # Output: 8.0
+
+    # Example usage of hello_world function
+    module_name = "util_functions"
+    function_name = "hello_world"
+    function_params = "('World',)"  # Parameters as a string
+    result = call_function(module_name, function_name, function_params)
+    print(result)  # Output: Hello, World!
