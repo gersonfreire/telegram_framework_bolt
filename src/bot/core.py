@@ -504,12 +504,9 @@ class TelegramBotFramework:
             self.send_status_interval = int(args[0]) * 60  # Convert minutes to seconds
             
             # Stop and delete all running jobs
-            # self.job_queue.stop()
-            # self.scheduler.shutdown(wait=wait).
-            context.job_queue.stop()
-            # Remove all active jobs
-            context.job_queue.stop()
-            context.job_queue.scheduler.remove_all_jobs()
+            current_jobs = context.job_queue.jobs()
+            for job in current_jobs:
+                job.schedule_removal()
             
             # Restart the job with the new interval
             job_queue: JobQueue = self.app.job_queue
