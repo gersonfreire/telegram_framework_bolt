@@ -40,6 +40,15 @@ def hello_world(name: str) -> str:
     """
     return f"Hello, {name}!"
 
+def hello_world_noparam() -> str:
+    """
+    Return a greeting message.
+
+    Returns:
+        str: The greeting message.
+    """
+    return "Hello World!"
+
 # Example usage
 if __name__ == "__main__":
     module_name = "math"
@@ -54,3 +63,10 @@ if __name__ == "__main__":
     function_params = "('World',)"  # Parameters as a string
     result = call_function(module_name, function_name, function_params)
     print(result)  # Output: Hello, World!
+
+    # Example usage of hello_world_noparam function
+    module_name = "util_functions"
+    function_name = "hello_world_noparam"
+    function_params = "()"  # No parameters
+    result = call_function(module_name, function_name, function_params)
+    print(result)  # Output: Hello World!
