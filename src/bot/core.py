@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.19 show hostname and script path on version command"
+__version__ = "0.4.20 show hostname and script path on version command"
 
 """TODO's:
 full command line on show version and post init only for admins
@@ -507,7 +507,9 @@ class TelegramBotFramework:
             # self.job_queue.stop()
             # self.scheduler.shutdown(wait=wait).
             context.job_queue.stop()
-            context.job_queue.jobs.clear()
+            # Remove all active jobs
+            context.job_queue.stop()
+            context.job_queue.scheduler.remove_all_jobs()
             
             # Restart the job with the new interval
             job_queue: JobQueue = self.app.job_queue
