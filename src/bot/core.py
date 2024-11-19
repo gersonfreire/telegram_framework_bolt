@@ -49,7 +49,7 @@ def get_config_path(config_filename: str = "config.yml") -> Path:
 class TelegramBotFramework:
     
     async def send_status_message(self, context: CallbackContext) -> None:
-        if self.status_message_enabled:
+        if self._load_status_message_enabled():
             for chat_id in self.admin_users:
                 try:
                     await context.bot.send_message(chat_id=chat_id, text="The bot is still active.")
@@ -166,9 +166,16 @@ class TelegramBotFramework:
         self._load_config()
         self._setup_logging()
         self._register_default_commands()
-        
-        # Initialize the status message flag
-        self.status_message_enabled = True
+
+    def _load_status_message_enabled(self) -> bool:
+        """Load the status_message_enabled value from persistent data."""
+        if 'status_message_enabled' in self.app.bot_data:
+            return self.app.bot_data['status_message_enabled']
+        return True  # Default value
+
+    def _save_status_message_enabled(self) -> None:
+        """Save the status_message_enabled value to persistent data."""
+        self.app.bot_data['status_message_enabled'] = self.status_message_enabled
 
     def _load_config(self) -> None:
         if not self.config_path.exists():
@@ -475,6 +482,7 @@ class TelegramBotFramework:
         user_id = update.effective_user.id
         if user_id in self.admin_users:
             self.status_message_enabled = not self.status_message_enabled
+            self._save_status_message_enabled()
             status = "enabled" if self.status_message_enabled else "disabled"
             await update.message.reply_text(f"Status message has been {status}.")
         else:
@@ -599,7 +607,11 @@ class TelegramBotFramework:
                 cmd.command: cmd.description or app.bot.commands[cmd.command].__doc__
                 for cmd in my_commands
             }
-            self.logger.info(f"Registered commands: {commands_dict}")
+            self.logger.info(f"Registered commands: {commands_dict}") 
+        
+            # Initialize the status message flag
+            self.status_message_enabled = self._load_status_message_enabled()  
+                      
         except Exception as e:
             self.logger.error(f"Error during post-initialization: {e}")
 
