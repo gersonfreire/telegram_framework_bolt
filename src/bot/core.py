@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.21 exec function by name"
+__version__ = "0.4.22 exec function by name"
 
 """TODO's:
 full command line on show version and post init only for admins

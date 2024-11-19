@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='tlgbotfwk',
-    version='0.4.21',  # Incremented version
+    version='0.4.22',  # Incremented version
     description='A powerful and extensible Python-based Telegram bot framework',
     author='Maker',
     author_email='youremail@example.com',
