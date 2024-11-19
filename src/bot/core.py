@@ -523,7 +523,7 @@ class TelegramBotFramework:
                 await update.message.reply_text("Please provide a valid interval in minutes.")
                 return
             
-            self.send_status_interval = int(args[0]) # Convert minutes to seconds
+            self.send_status_interval = int(args[0]) * 60 # Convert minutes to seconds
             self._save_send_status_interval()
             
             # Stop and delete all running jobs
