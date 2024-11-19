@@ -166,6 +166,9 @@ class TelegramBotFramework:
         self._load_config()
         self._setup_logging()
         self._register_default_commands()
+        
+        # Default value for send_status_interval
+        self.send_status_interval = 1800  # Default value (30 minutes)
 
     def _load_status_message_enabled(self) -> bool:
         """Load the status_message_enabled value from persistent data."""
@@ -176,6 +179,16 @@ class TelegramBotFramework:
     def _save_status_message_enabled(self) -> None:
         """Save the status_message_enabled value to persistent data."""
         self.app.bot_data['status_message_enabled'] = self.status_message_enabled
+
+    def _load_send_status_interval(self) -> int:
+        """Load the send_status_interval value from persistent data."""
+        if 'send_status_interval' in self.app.bot_data:
+            return self.app.bot_data['send_status_interval']
+        return 1800  # Default value
+
+    def _save_send_status_interval(self) -> None:
+        """Save the send_status_interval value to persistent data."""
+        self.app.bot_data['send_status_interval'] = self.send_status_interval
 
     def _load_config(self) -> None:
         if not self.config_path.exists():
@@ -511,6 +524,7 @@ class TelegramBotFramework:
                 return
             
             self.send_status_interval = int(args[0]) * 60  # Convert minutes to seconds
+            self._save_send_status_interval()
             
             # Stop and delete all running jobs
             current_jobs = context.job_queue.jobs()
@@ -595,6 +609,9 @@ class TelegramBotFramework:
                     await app.bot.send_message(chat_id=admin_id, text=version_message)
                 except Exception as e:
                     self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
+            
+            # Load send_status_interval from persistent bot data
+            self.send_status_interval = self._load_send_status_interval()
             
             # Set bot commands dynamically
             bot_commands = [
