@@ -624,7 +624,15 @@ class TelegramBotFramework:
             self.logger.info(f"Registered commands: {commands_dict}") 
         
             # Initialize the status message flag
-            self.status_message_enabled = self._load_status_message_enabled()  
+            self.status_message_enabled = self._load_status_message_enabled()
+            
+            # Load send_status_interval from persistent bot data
+            self.send_status_interval = self._load_send_status_interval() 
+        
+            # Add job to send status message every 30 minutes
+            job_queue: JobQueue = self.app.job_queue
+            job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)    
+            self.job_queue = job_queue                 
                       
         except Exception as e:
             self.logger.error(f"Error during post-initialization: {e}")
@@ -688,13 +696,13 @@ class TelegramBotFramework:
         
         self.app = app
             
-        # Load send_status_interval from persistent bot data
-        self.send_status_interval = self._load_send_status_interval() 
+        # # Load send_status_interval from persistent bot data
+        # self.send_status_interval = self._load_send_status_interval() 
     
-        # Add job to send status message every 30 minutes
-        job_queue: JobQueue = self.app.job_queue
-        job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)    
-        self.job_queue = job_queue    
+        # # Add job to send status message every 30 minutes
+        # job_queue: JobQueue = self.app.job_queue
+        # job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)    
+        # self.job_queue = job_queue    
         
         # Call post_init after initializing the bot
         app.run_polling()
