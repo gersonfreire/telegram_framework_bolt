@@ -168,7 +168,7 @@ class TelegramBotFramework:
         self._register_default_commands()
         
         # Default value for send_status_interval
-        self.send_status_interval = 1800  # Default value (30 minutes)
+        self.send_status_interval = 60  # Default value (1 minute)
 
     def _load_status_message_enabled(self) -> bool:
         """Load the status_message_enabled value from persistent data."""
@@ -184,7 +184,7 @@ class TelegramBotFramework:
         """Load the send_status_interval value from persistent data."""
         if 'send_status_interval' in self.app.bot_data:
             return self.app.bot_data['send_status_interval']
-        return 1800  # Default value
+        return 60  # Default value
 
     def _save_send_status_interval(self) -> None:
         """Save the send_status_interval value to persistent data."""
@@ -523,7 +523,7 @@ class TelegramBotFramework:
                 await update.message.reply_text("Please provide a valid interval in minutes.")
                 return
             
-            self.send_status_interval = int(args[0]) * 60  # Convert minutes to seconds
+            self.send_status_interval = int(args[0]) # Convert minutes to seconds
             self._save_send_status_interval()
             
             # Stop and delete all running jobs
@@ -610,9 +610,6 @@ class TelegramBotFramework:
                 except Exception as e:
                     self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
             
-            # Load send_status_interval from persistent bot data
-            self.send_status_interval = self._load_send_status_interval()
-            
             # Set bot commands dynamically
             bot_commands = [
                 (f"/{cmd}", handler.description)
@@ -690,9 +687,11 @@ class TelegramBotFramework:
         self.logger.info("Bot started successfully!")
         
         self.app = app
-
+            
+        # Load send_status_interval from persistent bot data
+        self.send_status_interval = self._load_send_status_interval() 
+    
         # Add job to send status message every 30 minutes
-        self.send_status_interval = 1 * 60
         job_queue: JobQueue = self.app.job_queue
         job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)    
         self.job_queue = job_queue    
