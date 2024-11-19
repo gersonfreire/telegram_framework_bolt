@@ -19,8 +19,25 @@ def call_function(module_name: str, function_name: str, function_params: str) ->
         # Get the function from the module
         func = getattr(module, function_name)
         
-        # Convert the function parameters from string to a tuple
-        params = eval(function_params)
+        # strip the parameters string of any whitespace
+        function_params = function_params.strip()
+        
+        if len(function_params) > 0:
+            # create a list of each parameter
+            function_params = function_params.split(",") 
+            
+            # for each item on the parameter list, if it is non numerical, add quotes
+            for i, param in enumerate(function_params):
+                if not param.isnumeric():
+                    function_params[i] = f"'{param.strip()}'"
+                    
+            # join the list of parameters into a string
+            function_params = f'({",".join(function_params)},)'
+            
+            # Convert the function parameters from string to a tuple
+            params = eval(function_params)
+        else:
+            params = ()
         
         # Call the function with the parameters and return the result
         result = func(*params)

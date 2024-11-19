@@ -536,8 +536,8 @@ class TelegramBotFramework:
             
             # Get the module name, function name, and function parameters from the command arguments
             args = context.args
-            if len(args) < 3:
-                await update.message.reply_text("Please provide the module name, function name, and function parameters.")
+            if len(args) < 2:
+                await update.message.reply_text("Please provide at least the module name and function name, and optionally function parameters.")
                 return
             
             module_name = args[0]
