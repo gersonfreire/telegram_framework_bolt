@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.25 save on bot data persistence job schedule interval"
+__version__ = "0.4.26 show current schedule config by showing persistent bot data"
 
 """TODO's:
 full command line on show version and post init only for admins
