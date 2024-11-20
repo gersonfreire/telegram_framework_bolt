@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.29 command that executes exec AND eval(expression) function"
+__version__ = "0.4.30 command that executes exec AND eval(expression) function"
 
 """TODO's:
 full command line on show version and post init only for admins
