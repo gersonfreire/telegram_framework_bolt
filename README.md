@@ -7,6 +7,8 @@
 
 A powerful and extensible Python-based Telegram bot framework that provides automatic command handling, settings management, and easy configuration.
 
+This is an updated and totally rewritten from ground of a [legacy version](https://github.com/gersonfreire/telegram-bot-framework)
+
 ## About
 
 You can find many libraries and modules ready to build bots on Telegram, but none of them cover the basic functionalities that are almost indispensable, such as creating a help menu automatically from commands, registering users, generating a log in the Telegram administrator and others. The purpose of this library is to fill these gaps and allow Telegram bot developers to quickly create powerful, stable and secure bots in just a few lines of code. This work is still in its early stages, but I invite you to help me explore and conquer the fascinating world of Telegram bots by collaborating and using this library.
