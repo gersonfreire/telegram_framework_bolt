@@ -12,6 +12,7 @@ get external ip address on version command instead of internal local ip address
 
 import asyncio
 from functools import wraps
+import json
 import logging
 import os
 from pathlib import Path
@@ -575,6 +576,27 @@ class TelegramBotFramework:
             self.logger.error(f"Error calling function: {e}")
             await update.message.reply_text("An error occurred while calling the function.")
     
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def show_bot_data(self, update: Update, context: CallbackContext) -> None:
+        """Show current bot data in JSON format"""
+        try:
+            bot_data = {
+                "version": self.version,
+                "admin_users": self.admin_users,
+                "config_path": str(self.config_path),
+                "settings": self.settings.display(),
+                "commands": list(self.commands.keys()),
+                "status_message_enabled": self.status_message_enabled,
+                "send_status_interval": self.send_status_interval,
+            }
+            bot_data_json = json.dumps(bot_data, indent=4)
+            await update.message.reply_text(f"```json\n{bot_data_json}\n```", parse_mode=ParseMode.MARKDOWN)
+        except Exception as e:
+            self.logger.error(f"Error showing bot data: {e}")
+            await update.message.reply_text("An error occurred while showing bot data.")    
+    
     async def post_init(self, app: Application) -> None:
         """Post-initialization tasks for the bot
 
@@ -691,6 +713,9 @@ class TelegramBotFramework:
 
         # Register the call_function_command handler
         app.add_handler(TelegramCommandHandler("call_function", self.call_function_command, filters=filters.User(user_id=self.admin_users)))
+
+        # Register the show_bot_data handler
+        app.add_handler(TelegramCommandHandler("show_bot_data", self.show_bot_data, filters=filters.User(user_id=self.admin_users)))        
 
         self.logger.info("Bot started successfully!")
         
