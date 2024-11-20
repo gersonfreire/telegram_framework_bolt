@@ -39,12 +39,12 @@ pip install -r requirements.txt
 5. Run the bot:
 
 ```bash
-python src/main.py
+python main.py
 ```
 
 ## Importing
 
-```
+```python
 from bot.core import TelegramBotFramework
 from bot.handlers import CommandHandler
 from bot.settings import Settings
@@ -69,7 +69,7 @@ from bot.settings import Settings
 
 ## Configuration
 
-### Environment Variables
+ Environment Variables
 
 - `BOT_TOKEN`: Your Telegram bot token from BotFather
 
@@ -84,7 +84,30 @@ bot:
     start:
       description: "Start the bot"
       response: "Welcome message"
-    # Add more commands...
+    help:
+      description: "Show available commands"
+      response: "Available commands:\n{commands}"
+    settings:
+      description: "Manage bot settings"
+      response: "Current Settings:\n{settings}"
+    echo:
+      description: "Echo the user's message"
+      response: "{message}"
+    stop:
+      description: "Stop the bot"
+      response: "Bot stopped."
+    version:
+      description: "Show bot version"
+      response: "Bot version: {version}"
+    toggle_status:
+      description: "Toggle status message"
+      response: "Status message toggled."
+    change_status_interval:
+      description: "Change status message interval"
+      response: "Status message interval changed."
+    call_function:
+      description: "Call a function"
+      response: "Function called."
 ```
 
 ## Available Commands
@@ -92,6 +115,12 @@ bot:
 - `/start` - Initialize the bot
 - `/help` - Display available commands
 - `/settings` - Show current bot settings
+- `/echo` - Echo the user's message
+- `/stop` - Stop the bot
+- `/version` - Show bot version
+- `/toggle_status` - Toggle status message
+- `/change_status_interval` - Change status message interval
+- `/call_function` - Call a function
 
 ## Extending the Framework
 
@@ -121,23 +150,33 @@ MIT License
 
 * If you do not have setuptools library already installed, you must run this command in order to create the distribution package using *setup.py*:
 
-`pip install setuptools`
+```bash
+pip install setuptools
+```
 
 * Additionally, if you do not have the *twine* tool, you will need to install it because it is the tool that uploads your package to *Pypi*:
 
-`pip install twine `
+```bash
+pip install twine
+```
 
 * Now, if already have *setuptools* installed, generate the package, check the version and other desired details on *setup.py* file and execute the following command to create the distribution folder locally:
 
-`python setup.py sdist bdist_wheel `
+```bash
+python setup.py sdist bdist_wheel
+```
 
 * Finally, upload the distribution package to *Pypi* with the following command, which will ask for the *Pypi* API token:
 
-`twine upload dist/* `
+```bash
+twine upload dist/*
+```
 
 * After deployed, your library can be installed anywhere with command, where `<library-name>` is the name set on setup.py:
 
-`pip install <library-name> `
+```bash
+pip install <library-name>
+```
 
 ## TODOS:
 
