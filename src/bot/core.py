@@ -619,7 +619,7 @@ class TelegramBotFramework:
             # Get the expression from the command arguments
             expression = " ".join(context.args)
             if not expression:
-                await update.message.reply_text('please provide an expression to evaluate.\nExample:\n/exec x = 10\nif x > 5:\n\tresult = "x is greater than 5"\nelse:\n\tresult = "x is not greater than 5"')
+                await update.message.reply_text('please provide an expression to evaluate.\nExample:\n/exec x = 10\nif x > 5:\n\tresult = "x is greater than 5"\nelse:\n\tresult = "x is not greater than 5"', parse_mode=ParseMode.MARKDOWN)
                 return
 
             # Evaluate the expression according to the command type
@@ -647,7 +647,7 @@ class TelegramBotFramework:
         except Exception as e:
             self.logger.error(f"Error evaluating expression: {e}")
             await update.message.reply_text(f"{e}")
-            await update.message.reply_text('Example:\n/exec x = 10\nif x > 5:\n\tresult = "x is greater than 5"\nelse:\n\tresult = "x is not greater than 5"')
+            await update.message.reply_text('please provide an expression to evaluate.\nExample:\n/exec x = 10\nif x > 5:\n\tresult = "x is greater than 5"\nelse:\n\tresult = "x is not greater than 5"', parse_mode=ParseMode.MARKDOWN)
     
     async def post_init(self, app: Application) -> None:
         """Post-initialization tasks for the bot
@@ -718,8 +718,9 @@ class TelegramBotFramework:
             bot = await app.bot.get_me()
             return bot.username
 
-        bot_username = asyncio.run(get_bot_username())
-        
+        loop = asyncio.get_event_loop()
+        bot_username = loop.run_until_complete(get_bot_username())
+             
          # just for compatible reasons with already running versions using the old your_bot_name_bot_data file
         bot_username = 'your_bot_name'
         persistence = PicklePersistence(filepath=f'{bot_username}_bot_data', update_interval=5)
