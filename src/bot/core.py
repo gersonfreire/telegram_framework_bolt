@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.26 show current schedule config by showing persistent bot data"
+__version__ = "0.4.27 command that executes eval(expression) function"
 
 """TODO's:
 full command line on show version and post init only for admins
@@ -597,6 +597,37 @@ class TelegramBotFramework:
             self.logger.error(f"Error showing bot data: {e}")
             await update.message.reply_text("An error occurred while showing bot data.")    
     
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def eval_command(self, update: Update, context: CallbackContext) -> None:
+        """Admin-only command to evaluate a Python expression.
+
+        Args:
+            update (Update): The update object
+            context (CallbackContext): The context object
+        """
+        try:
+            user_id = update.effective_user.id
+            if user_id not in self.admin_users:
+                await update.message.reply_text("You are not authorized to use this command.")
+                return
+
+            # Get the expression from the command arguments
+            expression = " ".join(context.args)
+            if not expression:
+                await update.message.reply_text("Please provide an expression to evaluate.")
+                return
+
+            # Evaluate the expression
+            result = eval(expression)
+
+            # Send the result back to the user
+            await update.message.reply_text(f"Result: {result}")
+        except Exception as e:
+            self.logger.error(f"Error evaluating expression: {e}")
+            await update.message.reply_text("An error occurred while evaluating the expression.")
+    
     async def post_init(self, app: Application) -> None:
         """Post-initialization tasks for the bot
 
@@ -659,7 +690,7 @@ class TelegramBotFramework:
         except Exception as e:
             self.logger.error(f"Error during post-initialization: {e}")
 
-    def run(self, external_handlers:list) -> None:
+    def run(self, external_handlers: list) -> None:
         app = Application.builder().token(self.token).build()
 
         async def get_bot_username():
@@ -716,6 +747,9 @@ class TelegramBotFramework:
 
         # Register the show_bot_data handler
         app.add_handler(TelegramCommandHandler("show_bot_data", self.show_bot_data, filters=filters.User(user_id=self.admin_users)))        
+
+        # Register the eval_command handler
+        app.add_handler(TelegramCommandHandler("eval", self.eval_command, filters=filters.User(user_id=self.admin_users)))
 
         self.logger.info("Bot started successfully!")
         
