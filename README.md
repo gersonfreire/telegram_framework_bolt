@@ -90,7 +90,12 @@ from bot.settings import Settings
 
  Environment Variables
 
-- `BOT_TOKEN`: Your Telegram bot token from BotFather
+Create a `.env` file in the root directory and add your bot token and admin user IDs:
+
+```
+DEFAULT_BOT_TOKEN=your_bot_token_here
+ADMIN_ID_LIST=your_telegram_user_id_here
+```
 
 ### Config File (config.yml)
 
@@ -140,6 +145,9 @@ bot:
 - `/toggle_status` - Toggle status message
 - `/change_status_interval` - Change status message interval
 - `/call_function` - Call a function
+
+* `/eval` - Evaluate a Python expression `(`*new*)
+* `/exec` - Execute Python code `(`*new*)
 
 ## Extending the Framework
 
