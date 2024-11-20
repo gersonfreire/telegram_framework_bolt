@@ -1,3 +1,8 @@
+<p align="center">
+  <a href="" rel="noopener">
+ <img width=200px height=200px src="https://i.imgur.com/FxL5qM0.jpg" alt="Bot logo"></a>
+</p>
+
 # Telegram Bot Framework
 
 A powerful and extensible Python-based Telegram bot framework that provides automatic command handling, settings management, and easy configuration.
