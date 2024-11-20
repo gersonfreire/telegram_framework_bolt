@@ -674,9 +674,11 @@ class TelegramBotFramework:
                 if value_type == "int":
                     value = int(value)
                     context.application.persistence.update_bot_data({key: int(value)})
+                    context.bot_data['status_message_enabled'] = int(value)
                 elif value_type == "float":
                     value = float(value)
                     context.application.persistence.update_bot_data({key: float(value)})
+                    context.bot_data['status_message_enabled'] = float(value)
                 elif value_type == "bool":
                     value = value.lower() in ("true", "1", "yes")
                     context.application.persistence.update_bot_data({key: bool(value)})
@@ -684,18 +686,23 @@ class TelegramBotFramework:
                 elif value_type == "json":
                     value = json.loads(value)
                     context.application.persistence.update_bot_data({key: json(value)})
+                    context.bot_data['status_message_enabled'] = json(value)
                 else: # string type
                     # Update the persistent bot user data
                     context.application.persistence.update_bot_data({key: value})                    
                     context.bot_data['status_message_enabled'] = value
                     
                 # force persistence storage to save bot data
-                
+                await context.application.persistence.flush()
 
             await update.message.reply_text(f"Bot data updated: {key} = {value}")
+            
         except Exception as e:
-            self.logger.error(f"Error setting bot data: {e}")
-            await update.message.reply_text(f"An error occurred while setting bot data: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            error_message = f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}"
+            self.logger.error(error_message)               
+            await update.message.reply_text(error_message, parse_mode=None)
     
     async def post_init(self, app: Application) -> None:
         """Post-initialization tasks for the bot
