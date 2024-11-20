@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.28 command that executes exec AND eval(expression) function"
+__version__ = "0.4.29 command that executes exec AND eval(expression) function"
 
 """TODO's:
 full command line on show version and post init only for admins
@@ -619,19 +619,17 @@ class TelegramBotFramework:
             # Get the expression from the command arguments
             expression = " ".join(context.args)
             if not expression:
-                await update.message.reply_text("Please provide an expression to evaluate.")
+                await update.message.reply_text('please provide an expression to evaluate.\nExample:\n/exec x = 10\nif x > 5:\n\tresult = "x is greater than 5"\nelse:\n\tresult = "x is not greater than 5"')
                 return
 
             # Evaluate the expression according to the command type
             if command_type == "exec":
-                code = """
-x = 10
-if x > 5:
-    result = "x is greater than 5"
-else:
-    result = "x is not greater than 5"
-                """    
+                # code = '/exec x = 10\nif x > 5:\n\tresult = "x is greater than 5"\nelse:\n\tresult = "x is not greater than 5"'   
                 code = update.message.text[len(command) + 2:]
+                
+                # replace special tab and line break characters
+                code = code.replace("\\n", "\n").replace("\\t", "\t")
+                
                 local_vars = {}
                 exec(code, {}, local_vars)
                 result = local_vars
@@ -648,7 +646,8 @@ else:
             await update.message.reply_text(f"```json\n{result}\n```", parse_mode=ParseMode.MARKDOWN)
         except Exception as e:
             self.logger.error(f"Error evaluating expression: {e}")
-            await update.message.reply_text("An error occurred while evaluating the expression.")
+            await update.message.reply_text(f"{e}")
+            await update.message.reply_text('Example:\n/exec x = 10\nif x > 5:\n\tresult = "x is greater than 5"\nelse:\n\tresult = "x is not greater than 5"')
     
     async def post_init(self, app: Application) -> None:
         """Post-initialization tasks for the bot
@@ -719,7 +718,9 @@ else:
             bot = await app.bot.get_me()
             return bot.username
 
-        # bot_username = app.run(get_bot_username())
+        bot_username = asyncio.run(get_bot_username())
+        
+         # just for compatible reasons with already running versions using the old your_bot_name_bot_data file
         bot_username = 'your_bot_name'
         persistence = PicklePersistence(filepath=f'{bot_username}_bot_data', update_interval=5)
 
