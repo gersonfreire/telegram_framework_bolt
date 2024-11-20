@@ -669,10 +669,28 @@ class TelegramBotFramework:
             value = " ".join(args[1:])
             
             # convert type of value according third parameter
-            
-
-            # Update the persistent bot user data
-            context.application.persistence.update_bot_data({key: value})
+            if len(args) > 2:
+                value_type = args[2].lower()
+                if value_type == "int":
+                    value = int(value)
+                    context.application.persistence.update_bot_data({key: int(value)})
+                elif value_type == "float":
+                    value = float(value)
+                    context.application.persistence.update_bot_data({key: float(value)})
+                elif value_type == "bool":
+                    value = value.lower() in ("true", "1", "yes")
+                    context.application.persistence.update_bot_data({key: bool(value)})
+                    context.bot_data['status_message_enabled'] = bool(value)
+                elif value_type == "json":
+                    value = json.loads(value)
+                    context.application.persistence.update_bot_data({key: json(value)})
+                else: # string type
+                    # Update the persistent bot user data
+                    context.application.persistence.update_bot_data({key: value})                    
+                    context.bot_data['status_message_enabled'] = value
+                    
+                # force persistence storage to save bot data
+                
 
             await update.message.reply_text(f"Bot data updated: {key} = {value}")
         except Exception as e:
