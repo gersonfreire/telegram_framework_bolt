@@ -649,6 +649,36 @@ class TelegramBotFramework:
             await update.message.reply_text(f"{e}")
             await update.message.reply_text('please provide an expression to evaluate.\nExample:\n/exec x = 10\nif x > 5:\n\tresult = "x is greater than 5"\nelse:\n\tresult = "x is not greater than 5"', parse_mode=ParseMode.MARKDOWN)
     
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def set_bot_data(self, update: Update, context: CallbackContext) -> None:
+        """Command to set bot data
+
+        Args:
+            update (Update): The update object
+            context (CallbackContext): The context object
+        """
+        try:
+            args = context.args
+            if len(args) < 2:
+                await update.message.reply_text("Please provide both the key and value.\nUsage: /set_bot_data <key> <value>")
+                return
+
+            key = args[0]
+            value = " ".join(args[1:])
+            
+            # convert type of value according third parameter
+            
+
+            # Update the persistent bot user data
+            context.application.persistence.update_bot_data({key: value})
+
+            await update.message.reply_text(f"Bot data updated: {key} = {value}")
+        except Exception as e:
+            self.logger.error(f"Error setting bot data: {e}")
+            await update.message.reply_text(f"An error occurred while setting bot data: {e}")
+    
     async def post_init(self, app: Application) -> None:
         """Post-initialization tasks for the bot
 
@@ -777,6 +807,9 @@ class TelegramBotFramework:
 
         # Register the exec_command handler
         app.add_handler(TelegramCommandHandler("exec", self.eval_exec_command, filters=filters.User(user_id=self.admin_users)))
+
+        # Register the set_bot_data handler
+        app.add_handler(TelegramCommandHandler("set_bot_data", self.set_bot_data, filters=filters.User(user_id=self.admin_users)))
 
         self.logger.info("Bot started successfully!")
         
