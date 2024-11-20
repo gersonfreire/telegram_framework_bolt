@@ -1,10 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.5 auto-update tlgbotfwk library"
+__version__ = "0.4.29 command that executes exec AND eval(expression) function"
+
+"""TODO's:
+full command line on show version and post init only for admins
+Change interval status
+Clear and update telegram command menu from handlers
+get external ip address on version command instead of internal local ip address
+"""
 
 import asyncio
 from functools import wraps
+import json
 import logging
 import os
 from pathlib import Path
@@ -12,15 +20,18 @@ import sys
 from typing import Dict, Optional, List
 from dotenv import load_dotenv
 import dotenv
+import socket
+import requests
 
 import yaml
 from telegram import Update
 from telegram.constants import ChatAction
-from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes, PicklePersistence, CallbackContext, filters
+from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes, PicklePersistence, CallbackContext, filters, JobQueue
 from telegram.constants import ParseMode
 
 from .handlers import CommandHandler
 from .settings import Settings
+from .util_functions import call_function
 
 from pathlib import Path
 import os
@@ -29,8 +40,7 @@ import sys
 # import bot.util_decorators as util_decorators
 
 logger = logging.getLogger(__name__)
-
-def get_main_script_path() -> Path:
+def get_main_script_path() -> Path: 
     return (Path(os.path.abspath(sys.modules['__main__'].__file__)))
 
 def get_config_path(config_filename: str = "config.yml") -> Path:
@@ -39,6 +49,14 @@ def get_config_path(config_filename: str = "config.yml") -> Path:
 
 class TelegramBotFramework:
     
+    async def send_status_message(self, context: CallbackContext) -> None:
+        if self._load_status_message_enabled():
+            for chat_id in self.admin_users:
+                try:
+                    await context.bot.send_message(chat_id=chat_id, text="The bot is still active.")
+                except Exception as e:
+                    self.logger.error(f"Failed to send status message to admin {chat_id}: {e}")    
+      
     def with_typing_action(handler):
         @wraps(handler)
         async def wrapper(self, update: Update, context: CallbackContext, *args, **kwargs):
@@ -129,6 +147,7 @@ class TelegramBotFramework:
         self.logger.debug(f"The main script folder path is: {main_script_path}")                
         
         # Get bot token from environment but overwrite it if it is provided inside .env file
+        # main_script_path = Path(get_main_script_path() or os.path.abspath(__file__))
         self.env_file = main_script_path.parent / ".env" or env_file
         load_dotenv(override=True, dotenv_path=str(self.env_file))
         env_token = os.getenv("DEFAULT_BOT_TOKEN")
@@ -148,6 +167,29 @@ class TelegramBotFramework:
         self._load_config()
         self._setup_logging()
         self._register_default_commands()
+        
+        # Default value for send_status_interval
+        self.send_status_interval = 60  # Default value (1 minute)
+
+    def _load_status_message_enabled(self) -> bool:
+        """Load the status_message_enabled value from persistent data."""
+        if 'status_message_enabled' in self.app.bot_data:
+            return self.app.bot_data['status_message_enabled']
+        return True  # Default value
+
+    def _save_status_message_enabled(self) -> None:
+        """Save the status_message_enabled value to persistent data."""
+        self.app.bot_data['status_message_enabled'] = self.status_message_enabled
+
+    def _load_send_status_interval(self) -> int:
+        """Load the send_status_interval value from persistent data."""
+        if 'send_status_interval' in self.app.bot_data:
+            return self.app.bot_data['send_status_interval']
+        return 60  # Default value
+
+    def _save_send_status_interval(self) -> None:
+        """Save the send_status_interval value to persistent data."""
+        self.app.bot_data['send_status_interval'] = self.send_status_interval
 
     def _load_config(self) -> None:
         if not self.config_path.exists():
@@ -398,6 +440,23 @@ class TelegramBotFramework:
                 f"Your Telegram ID: {user_id}\n"
                 f"Bot Username: @{bot_username}"
             )
+            
+            if user_id in self.admin_users:
+                main_script_path = get_main_script_path()
+                command_line = " ".join(sys.argv)
+                hostname = socket.gethostname()
+                ip_address = socket.gethostbyname(hostname)
+                try:
+                    external_ip = requests.get('https://api.ipify.org', timeout=5).text
+                except requests.RequestException as e:
+                    external_ip = ip_address
+                version_message += (
+                    f"\nMain Script Path: {main_script_path}"
+                    f"\nCommand Line: {command_line}"
+                    f"\nHostname: {hostname}"
+                    f"\nServer IP Address: {external_ip}"
+                )
+            
             await update.message.reply_text(version_message)
         except Exception as e:
             self.logger.error(f"Error handling /version command: {e}")
@@ -423,18 +482,208 @@ class TelegramBotFramework:
         except Exception as e:
             self.logger.error(f"Error updating tlgbotfwk library: {e}")
             await update.message.reply_text("An error occurred while updating the tlgbotfwk library.")
+   
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def toggle_status_message(self, update: Update, context: CallbackContext) -> None:
+        """Toggle the status message on or off to indicate whether the bot is active.
 
+        Args:
+            update (Update): _description_
+            context (CallbackContext): _description_
+        """
+        user_id = update.effective_user.id
+        if user_id in self.admin_users:
+            self.status_message_enabled = not self.status_message_enabled
+            self._save_status_message_enabled()
+            status = "enabled" if self.status_message_enabled else "disabled"
+            await update.message.reply_text(f"Status message has been {status}.")
+        else:
+            await update.message.reply_text("You are not authorized to use this command.")
+          
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def change_status_interval(self, update: Update, context: CallbackContext) -> None:
+        """Change the interval for sending status messages and restart the job
+
+        Args:
+            update (Update): The update object
+            context (CallbackContext): The context object
+        """
+        try:
+            user_id = update.effective_user.id
+            if user_id not in self.admin_users:
+                await update.message.reply_text("You are not authorized to use this command.")
+                return
+            
+            # Get the new interval from the command arguments
+            args = context.args
+            if not args or not args[0].isdigit():
+                await update.message.reply_text("Please provide a valid interval in minutes.")
+                return
+            
+            self.send_status_interval = int(args[0]) * 60 # Convert minutes to seconds
+            self._save_send_status_interval()
+            
+            # Stop and delete all running jobs
+            current_jobs = context.job_queue.jobs()
+            for job in current_jobs:
+                job.schedule_removal()
+            
+            # Restart the job with the new interval
+            job_queue: JobQueue = self.app.job_queue
+            self.job_queue = context.job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)            
+            
+            await update.message.reply_text(f"Status message interval has been changed to {args[0]} minutes.")
+        except Exception as e:
+            self.logger.error(f"Error changing status interval: {e}")
+            await update.message.reply_text("An error occurred while changing the status interval.")
+            
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def call_function_command(self, update: Update, context: CallbackContext) -> None:
+        """Admin-only command to call a function dynamically
+
+        Args:
+            update (Update): The update object
+            context (CallbackContext): The context object
+        """
+        try:
+            user_id = update.effective_user.id
+            if user_id not in self.admin_users:
+                await update.message.reply_text("You are not authorized to use this command.")
+                return
+            
+            # Get the module name, function name, and function parameters from the command arguments
+            args = context.args
+            if len(args) < 2:
+                await update.message.reply_text("Please provide at least the module name and function name, and optionally function parameters.")
+                return
+            
+            module_name = args[0]
+            function_name = args[1]
+            function_params = " ".join(args[2:])
+            
+            # Call the function using the call_function utility
+            result = call_function(module_name, function_name, function_params)
+            
+            # Send the result back to the user
+            await update.message.reply_text(f"Result: {result}")
+        except Exception as e:
+            self.logger.error(f"Error calling function: {e}")
+            await update.message.reply_text("An error occurred while calling the function.")
+    
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def show_bot_data(self, update: Update, context: CallbackContext) -> None:
+        """Show current bot data in JSON format"""
+        try:
+            bot_data = {
+                "version": self.version,
+                "admin_users": self.admin_users,
+                "config_path": str(self.config_path),
+                "settings": self.settings.display(),
+                "commands": list(self.commands.keys()),
+                "status_message_enabled": self.status_message_enabled,
+                "send_status_interval": self.send_status_interval,
+            }
+            bot_data_json = json.dumps(bot_data, indent=4)
+            await update.message.reply_text(f"```json\n{bot_data_json}\n```", parse_mode=ParseMode.MARKDOWN)
+        except Exception as e:
+            self.logger.error(f"Error showing bot data: {e}")
+            await update.message.reply_text("An error occurred while showing bot data.")    
+    
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def eval_exec_command(self, update: Update, context: CallbackContext) -> None:
+        """Admin-only command to evaluate a Python expression.
+
+        Args:
+            update (Update): The update object
+            context (CallbackContext): The context object
+        """
+        try:
+            command = update.message.text.split()[0][1:]  # Remove the '/' prefix
+            command_type = "exec" if command == "exec" else "eval"
+            
+            user_id = update.effective_user.id
+            if user_id not in self.admin_users:
+                await update.message.reply_text("You are not authorized to use this command.")
+                return
+
+            # Get the expression from the command arguments
+            expression = " ".join(context.args)
+            if not expression:
+                await update.message.reply_text('please provide an expression to evaluate.\nExample:\n/exec x = 10\nif x > 5:\n\tresult = "x is greater than 5"\nelse:\n\tresult = "x is not greater than 5"', parse_mode=ParseMode.MARKDOWN)
+                return
+
+            # Evaluate the expression according to the command type
+            if command_type == "exec":
+                # code = '/exec x = 10\nif x > 5:\n\tresult = "x is greater than 5"\nelse:\n\tresult = "x is not greater than 5"'   
+                code = update.message.text[len(command) + 2:]
+                
+                # replace special tab and line break characters
+                code = code.replace("\\n", "\n").replace("\\t", "\t")
+                
+                local_vars = {}
+                exec(code, {}, local_vars)
+                result = local_vars
+                # Access the result of the conditional statement
+                # result = local_vars['result']
+                self.logger.debug(result)  # Output: x is greater than 5                
+            else:
+                result = eval(expression)
+            
+            result = json.dumps(result, indent=4)
+
+            # Send the result back to the user
+            # await update.message.reply_text(f"Result: {result}")
+            await update.message.reply_text(f"```json\n{result}\n```", parse_mode=ParseMode.MARKDOWN)
+        except Exception as e:
+            self.logger.error(f"Error evaluating expression: {e}")
+            await update.message.reply_text(f"{e}")
+            await update.message.reply_text('please provide an expression to evaluate.\nExample:\n/exec x = 10\nif x > 5:\n\tresult = "x is greater than 5"\nelse:\n\tresult = "x is not greater than 5"', parse_mode=ParseMode.MARKDOWN)
+    
     async def post_init(self, app: Application) -> None:
+        """Post-initialization tasks for the bot
+
+        Args:
+            app (Application): The application object
+        """
         try:
             self.logger.info("Bot post-initialization complete!")
             admin_users = self.config['bot'].get('admin_users', [])
             bot_username = (await app.bot.get_me()).username
-            version_message = f"Bot post-initialization complete!\nVersion: {__version__}\nBot Username: @{bot_username}\nRun /help to see available commands."
+            version_message = (
+                f"Bot post-initialization complete!\n"
+                f"Version: {__version__}\n"
+                f"Bot Username: @{bot_username}\n"
+                f"Run /help to see available commands."
+            )
+            
+            if admin_users:
+                main_script_path = get_main_script_path()
+                command_line = " ".join(sys.argv)
+                hostname = socket.gethostname()
+                ip_address = socket.gethostbyname(hostname)
+                version_message += (
+                    f"\nMain Script Path: {main_script_path}"
+                    f"\nCommand Line: {command_line}"
+                    f"\nHostname: {hostname}"
+                    f"\nIP Address: {ip_address}"
+                )
+            
             for admin_id in admin_users:
                 try:
                     await app.bot.send_message(chat_id=admin_id, text=version_message)
                 except Exception as e:
                     self.logger.error(f"Failed to send message to admin {admin_id}: {e}")
+            
             # Set bot commands dynamically
             bot_commands = [
                 (f"/{cmd}", handler.description)
@@ -446,23 +695,33 @@ class TelegramBotFramework:
                 cmd.command: cmd.description or app.bot.commands[cmd.command].__doc__
                 for cmd in my_commands
             }
-            registered_handlers = [handler.callback.__name__ for handler in app.handlers[0]]
-            registered_handlers = [
-                f"{handler.callback.__name__}: {', '.join(handler.commands)}"
-                for handler in app.handlers[0] if hasattr(handler, 'commands')
-            ]
-            self.logger.info(f"Registered handlers: {registered_handlers}")
+            self.logger.info(f"Registered commands: {commands_dict}") 
+        
+            # Initialize the status message flag
+            self.status_message_enabled = self._load_status_message_enabled()
+            
+            # Load send_status_interval from persistent bot data
+            self.send_status_interval = self._load_send_status_interval() 
+        
+            # Add job to send status message every 30 minutes
+            job_queue: JobQueue = self.app.job_queue
+            job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)    
+            self.job_queue = job_queue                 
+                      
         except Exception as e:
             self.logger.error(f"Error during post-initialization: {e}")
 
-    def run(self, external_handlers:list) -> None:
+    def run(self, external_handlers: list) -> None:
         app = Application.builder().token(self.token).build()
 
         async def get_bot_username():
             bot = await app.bot.get_me()
             return bot.username
 
-        # bot_username = app.run(get_bot_username())
+        loop = asyncio.get_event_loop()
+        bot_username = loop.run_until_complete(get_bot_username())
+             
+         # just for compatible reasons with already running versions using the old your_bot_name_bot_data file
         bot_username = 'your_bot_name'
         persistence = PicklePersistence(filepath=f'{bot_username}_bot_data', update_interval=5)
 
@@ -501,9 +760,35 @@ class TelegramBotFramework:
         for handler in external_handlers:
             app.add_handler(TelegramCommandHandler("echo", handler), group=-1)
 
+        # Register the toggle command
+        app.add_handler(TelegramCommandHandler('toggle_status', self.toggle_status_message, filters=filters.User(user_id=self.admin_users)))
+        
+        # Register the change_status_interval command handler
+        app.add_handler(TelegramCommandHandler("change_status_interval", self.change_status_interval, filters=filters.User(user_id=self.admin_users)))        
+
+        # Register the call_function_command handler
+        app.add_handler(TelegramCommandHandler("call_function", self.call_function_command, filters=filters.User(user_id=self.admin_users)))
+
+        # Register the show_bot_data handler
+        app.add_handler(TelegramCommandHandler("show_bot_data", self.show_bot_data, filters=filters.User(user_id=self.admin_users)))        
+
+        # Register the eval_command handler
+        app.add_handler(TelegramCommandHandler("eval", self.eval_exec_command, filters=filters.User(user_id=self.admin_users)))      
+
+        # Register the exec_command handler
+        app.add_handler(TelegramCommandHandler("exec", self.eval_exec_command, filters=filters.User(user_id=self.admin_users)))
+
         self.logger.info("Bot started successfully!")
         
         self.app = app
+            
+        # # Load send_status_interval from persistent bot data
+        # self.send_status_interval = self._load_send_status_interval() 
+    
+        # # Add job to send status message every 30 minutes
+        # job_queue: JobQueue = self.app.job_queue
+        # job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)    
+        # self.job_queue = job_queue    
         
         # Call post_init after initializing the bot
         app.run_polling()

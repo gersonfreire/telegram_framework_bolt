@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tlgbotfwk"
+version = "0.4.29"
+description = "A powerful and extensible Python-based Telegram bot framework"
+authors = [
+    { name = "Maker", email = "youremail@example.com" }
+]
+dependencies = [
+    "python-telegram-bot>=20.7",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.1",
+]
+requires-python = ">=3.6"

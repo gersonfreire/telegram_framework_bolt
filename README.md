@@ -1,6 +1,25 @@
+<p align="center">
+  <a href="" rel="noopener">
+ <img width=200px height=200px src="https://i.imgur.com/FxL5qM0.jpg" alt="Bot logo"></a>
+</p>
+
 # Telegram Bot Framework
 
 A powerful and extensible Python-based Telegram bot framework that provides automatic command handling, settings management, and easy configuration.
+
+This is an updated and totally rewritten from ground of a [legacy version](https://github.com/gersonfreire/telegram-bot-framework)
+
+## About
+
+You can find many libraries and modules ready to build bots on Telegram, but none of them cover the basic functionalities that are almost indispensable, such as creating a help menu automatically from commands, registering users, generating a log in the Telegram administrator and others. The purpose of this library is to fill these gaps and allow Telegram bot developers to quickly create powerful, stable and secure bots in just a few lines of code. This work is still in its early stages, but I invite you to help me explore and conquer the fascinating world of Telegram bots by collaborating and using this library.
+
+The orginal article in English is here: [A Python Framework for Telegram Bots - DEV Community](https://dev.to/gersonfreire/a-python-framework-for-telegram-bots-238f)
+
+The orginal article in Portuguese is here: [Biblioteca em nível de aplicação para criar bots no Telegram 🤖 · telegram · TabNews](https://www.tabnews.com.br/telegram/biblioteca-de-nivel-de-aplicativo-para-criar-bots-no-telegram)
+
+## How it works
+
+Basically, we build a class called *TelegramBotFramework*, which inherits from the *python-telegram-bot Application class*, implemented by the telegram.ext library, provided by the python-telegram-bot package, version 21 or greater ([https://github.com/python-telegram-bot/python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)). In this child class, we implement some default methods to handle the universal commands /start, /help and other unrecognized commands. However, the developer can implement their own command handlers without losing the built-in functionality. I recommend reading the source code for more details. I also recommend Python 3.12 version.
 
 ## Features
 
@@ -39,12 +58,12 @@ pip install -r requirements.txt
 5. Run the bot:
 
 ```bash
-python src/main.py
+python main.py
 ```
 
 ## Importing
 
-```
+```python
 from bot.core import TelegramBotFramework
 from bot.handlers import CommandHandler
 from bot.settings import Settings
@@ -69,9 +88,14 @@ from bot.settings import Settings
 
 ## Configuration
 
-### Environment Variables
+ Environment Variables
 
-- `BOT_TOKEN`: Your Telegram bot token from BotFather
+Create a `.env` file in the root directory and add your bot token and admin user IDs:
+
+```
+DEFAULT_BOT_TOKEN=your_bot_token_here
+ADMIN_ID_LIST=your_telegram_user_id_here
+```
 
 ### Config File (config.yml)
 
@@ -84,7 +108,30 @@ bot:
     start:
       description: "Start the bot"
       response: "Welcome message"
-    # Add more commands...
+    help:
+      description: "Show available commands"
+      response: "Available commands:\n{commands}"
+    settings:
+      description: "Manage bot settings"
+      response: "Current Settings:\n{settings}"
+    echo:
+      description: "Echo the user's message"
+      response: "{message}"
+    stop:
+      description: "Stop the bot"
+      response: "Bot stopped."
+    version:
+      description: "Show bot version"
+      response: "Bot version: {version}"
+    toggle_status:
+      description: "Toggle status message"
+      response: "Status message toggled."
+    change_status_interval:
+      description: "Change status message interval"
+      response: "Status message interval changed."
+    call_function:
+      description: "Call a function"
+      response: "Function called."
 ```
 
 ## Available Commands
@@ -92,6 +139,15 @@ bot:
 - `/start` - Initialize the bot
 - `/help` - Display available commands
 - `/settings` - Show current bot settings
+- `/echo` - Echo the user's message
+- `/stop` - Stop the bot
+- `/version` - Show bot version
+- `/toggle_status` - Toggle status message
+- `/change_status_interval` - Change status message interval
+- `/call_function` - Call a function
+
+* `/eval` - Evaluate a Python expression `(`*new*)
+* `/exec` - Execute Python code `(`*new*)
 
 ## Extending the Framework
 
@@ -121,23 +177,33 @@ MIT License
 
 * If you do not have setuptools library already installed, you must run this command in order to create the distribution package using *setup.py*:
 
-`pip install setuptools`
+```bash
+pip install setuptools
+```
 
 * Additionally, if you do not have the *twine* tool, you will need to install it because it is the tool that uploads your package to *Pypi*:
 
-`pip install twine `
+```bash
+pip install twine
+```
 
 * Now, if already have *setuptools* installed, generate the package, check the version and other desired details on *setup.py* file and execute the following command to create the distribution folder locally:
 
-`python setup.py sdist bdist_wheel `
+```bash
+python setup.py sdist bdist_wheel
+```
 
 * Finally, upload the distribution package to *Pypi* with the following command, which will ask for the *Pypi* API token:
 
-`twine upload dist/* `
+```bash
+twine upload dist/*
+```
 
 * After deployed, your library can be installed anywhere with command, where `<library-name>` is the name set on setup.py:
 
-`pip install <library-name> `
+```bash
+pip install <library-name>
+```
 
 ## TODOS:
 

@@ -1,13 +1,9 @@
 bot:
-  default_bot_token: "your_bot_token_here"
   name: "MyTelegramBot"
-  description: "A powerful and extensible Telegram bot framework"
-  admin_users:
-    - your_telegram_user_id_here
   commands:
     start:
       description: "Start the bot"
-      response: "👋 Welcome! I'm here to help you. Use /help to see available commands."
+      response: "Welcome message"
     help:
       description: "Show available commands"
       response: "Available commands:\n{commands}"
@@ -17,3 +13,18 @@ bot:
     echo:
       description: "Echo the user's message"
       response: "{message}"
+    stop:
+      description: "Stop the bot"
+      response: "Bot stopped."
+    version:
+      description: "Show bot version"
+      response: "Bot version: {version}"
+    toggle_status:
+      description: "Toggle status message"
+      response: "Status message toggled."
+    change_status_interval:
+      description: "Change status message interval"
+      response: "Status message interval changed."
+    call_function:
+      description: "Call a function"
+      response: "Function called."
