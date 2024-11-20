@@ -666,7 +666,8 @@ class TelegramBotFramework:
                 return
 
             key = args[0]
-            value = " ".join(args[1:])
+            # value = " ".join(args[1:])
+            value = args[1]
             
             # convert type of value according third parameter
             if len(args) > 2:
