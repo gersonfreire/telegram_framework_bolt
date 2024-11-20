@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.27 command that executes eval(expression) function"
+__version__ = "0.4.28 command that executes exec AND eval(expression) function"
 
 """TODO's:
 full command line on show version and post init only for admins
@@ -600,7 +600,7 @@ class TelegramBotFramework:
     @with_typing_action
     @with_log_admin
     @with_register_user
-    async def eval_command(self, update: Update, context: CallbackContext) -> None:
+    async def eval_exec_command(self, update: Update, context: CallbackContext) -> None:
         """Admin-only command to evaluate a Python expression.
 
         Args:
@@ -608,6 +608,9 @@ class TelegramBotFramework:
             context (CallbackContext): The context object
         """
         try:
+            command = update.message.text.split()[0][1:]  # Remove the '/' prefix
+            command_type = "exec" if command == "exec" else "eval"
+            
             user_id = update.effective_user.id
             if user_id not in self.admin_users:
                 await update.message.reply_text("You are not authorized to use this command.")
@@ -619,8 +622,15 @@ class TelegramBotFramework:
                 await update.message.reply_text("Please provide an expression to evaluate.")
                 return
 
-            # Evaluate the expression
-            result = eval(expression)
+            # Evaluate the expression according to the command type
+            if command_type == "exec":
+                local_vars = {}
+                exec(expression, {}, local_vars)
+                result = local_vars
+            else:
+                result = eval(expression)
+            
+            result = json.dumps(result, indent=4)
 
             # Send the result back to the user
             await update.message.reply_text(f"Result: {result}")
@@ -749,7 +759,10 @@ class TelegramBotFramework:
         app.add_handler(TelegramCommandHandler("show_bot_data", self.show_bot_data, filters=filters.User(user_id=self.admin_users)))        
 
         # Register the eval_command handler
-        app.add_handler(TelegramCommandHandler("eval", self.eval_command, filters=filters.User(user_id=self.admin_users)))
+        app.add_handler(TelegramCommandHandler("eval", self.eval_exec_command, filters=filters.User(user_id=self.admin_users)))      
+
+        # Register the exec_command handler
+        app.add_handler(TelegramCommandHandler("exec", self.eval_exec_command, filters=filters.User(user_id=self.admin_users)))
 
         self.logger.info("Bot started successfully!")
         
