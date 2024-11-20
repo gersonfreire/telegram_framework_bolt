@@ -624,16 +624,28 @@ class TelegramBotFramework:
 
             # Evaluate the expression according to the command type
             if command_type == "exec":
+                code = """
+x = 10
+if x > 5:
+    result = "x is greater than 5"
+else:
+    result = "x is not greater than 5"
+                """    
+                code = update.message.text[len(command) + 2:]
                 local_vars = {}
-                exec(expression, {}, local_vars)
+                exec(code, {}, local_vars)
                 result = local_vars
+                # Access the result of the conditional statement
+                # result = local_vars['result']
+                self.logger.debug(result)  # Output: x is greater than 5                
             else:
                 result = eval(expression)
             
             result = json.dumps(result, indent=4)
 
             # Send the result back to the user
-            await update.message.reply_text(f"Result: {result}")
+            # await update.message.reply_text(f"Result: {result}")
+            await update.message.reply_text(f"```json\n{result}\n```", parse_mode=ParseMode.MARKDOWN)
         except Exception as e:
             self.logger.error(f"Error evaluating expression: {e}")
             await update.message.reply_text("An error occurred while evaluating the expression.")
