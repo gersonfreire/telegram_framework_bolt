@@ -695,6 +695,9 @@ class TelegramBotFramework:
                     
                 # force persistence storage to save bot data
                 await context.application.persistence.flush()
+                
+                # """Save the send_status_interval value to persistent data."""
+                # self.app.bot_data['send_status_interval'] = self.send_status_interval                
 
             await update.message.reply_text(f"Bot data updated: {key} = {value}")
             
