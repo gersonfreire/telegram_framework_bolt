@@ -673,27 +673,21 @@ class TelegramBotFramework:
             # convert type of value according third parameter
             if len(args) > 2:
                 value_type = args[2].lower()
-                if value_type == "int":
-                    value = int(value)
-                    context.application.persistence.update_bot_data({key: int(value)})
-                    context.bot_data[key] = int(value)
-                elif value_type == "float":
-                    value = float(value)
-                    context.application.persistence.update_bot_data({key: float(value)})
-                    context.bot_data[key] = float(value)
-                elif value_type == "bool":
-                    value = value.lower() in ("true", "1", "yes")
-                    context.application.persistence.update_bot_data({key: bool(value)})
-                    context.bot_data[key] = bool(value)
-                elif value_type == "json":
-                    value = json.loads(value)
-                    context.application.persistence.update_bot_data({key: json(value)})
-                    context.bot_data[key] = json(value)
-                else: # string type
-                    # Update the persistent bot user data
-                    context.application.persistence.update_bot_data({key: value})                    
-                    context.bot_data[key] = value              
-                    self.app.bot_data[key] = value  
+                type_mapping = {
+                    "int": int,
+                    "float": float,
+                    "bool": lambda x: x.lower() in ("true", "1", "yes"),
+                    "json": json.loads,
+                    "str": str
+                }
+                
+                if value_type in type_mapping:
+                    value = type_mapping[value_type](value)
+                    context.application.persistence.update_bot_data({key: value})
+                    context.bot_data[key] = value
+                else:
+                    await update.message.reply_text(f"Unsupported value type: {value_type}")
+                    return
             else: # string type
                 # Update the persistent bot user data
                 context.application.persistence.update_bot_data({key: value})                    
