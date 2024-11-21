@@ -593,7 +593,10 @@ class TelegramBotFramework:
             }
             bot_data = context.bot_data # await context.application.persistence.get_bot_data()
             bot_data_json = json.dumps(bot_data, indent=4)
-            await update.message.reply_text(f"```json\n{bot_data_json}\n```", parse_mode=ParseMode.MARKDOWN)
+                        
+            formatted_json = f"```json\n{bot_data_json}\n```"
+            await update.message.reply_text(f"_Bot persistent data:_ {os.linesep}{formatted_json}", parse_mode=ParseMode.MARKDOWN)
+                        
         except Exception as e:
             self.logger.error(f"Error showing bot data: {e}")
             await update.message.reply_text("An error occurred while showing bot data.")    
