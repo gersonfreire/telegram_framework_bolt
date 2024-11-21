@@ -693,7 +693,12 @@ class TelegramBotFramework:
                     # Update the persistent bot user data
                     context.application.persistence.update_bot_data({key: value})                    
                     context.bot_data[key] = value              
-                    self.app.bot_data[key] = value        
+                    self.app.bot_data[key] = value  
+            else: # string type
+                # Update the persistent bot user data
+                context.application.persistence.update_bot_data({key: value})                    
+                context.bot_data[key] = value              
+                self.app.bot_data[key] = value        
                 
                 # """Save the send_status_interval value to persistent data."""
                 # self.app.bot_data['send_status_interval'] = self.send_status_interval  
