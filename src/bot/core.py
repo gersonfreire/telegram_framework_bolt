@@ -382,7 +382,9 @@ class TelegramBotFramework:
 
             json_data = json.dumps(context.user_data, indent=4, default=default_converter)
             formatted_json = f"```json\n{json_data}\n```"
-            await update.message.reply_text(f"_User persistent data:_ {os.linesep}{formatted_json}", parse_mode=ParseMode.MARKDOWN)            
+            await update.message.reply_text(f"_User persistent data:_ {os.linesep}{formatted_json}", parse_mode=ParseMode.MARKDOWN)
+            formatted_json = f"`{json_data}`"            
+            await update.message.reply_text(f"_Copy:_ {os.linesep}{formatted_json}", parse_mode=ParseMode.MARKDOWN)            
             
         except Exception as e:
             self.logger.error(f"Error showing user data: {e}")
