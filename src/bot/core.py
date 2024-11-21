@@ -673,33 +673,39 @@ class TelegramBotFramework:
             # convert type of value according third parameter
             if len(args) > 2:
                 value_type = args[2].lower()
-                type_mapping = {
-                    "int": int,
-                    "float": float,
-                    "bool": lambda x: x.lower() in ("true", "1", "yes"),
-                    "json": json.loads,
-                    "str": str
-                }
-                value = eval(f"{value_type}('{value}')")
                 
-                if value_type in type_mapping:
-                    value = type_mapping[value_type](value)
-                    context.application.persistence.update_bot_data({key: value})
-                    context.bot_data[key] = value
-                else:
-                    await update.message.reply_text(f"Unsupported value type: {value_type}")
-                    return
+                # type_mapping = {
+                #     "int": int,
+                #     "float": float,
+                #     "bool": lambda x: x.lower() in ("true", "1", "yes"),
+                #     "json": json.loads,
+                #     "str": str
+                # }
+                
+                # if value_type in type_mapping:
+                #     value = type_mapping[value_type](value)
+                #     context.application.persistence.update_bot_data({key: value})
+                #     context.bot_data[key] = value
+                # else:
+                #     await update.message.reply_text(f"Unsupported value type: {value_type}")
+                #     return
+                
             else: # string type
-                # Update the persistent bot user data
-                context.application.persistence.update_bot_data({key: value})                    
-                context.bot_data[key] = value              
-                self.app.bot_data[key] = value        
+                value_type = "str"
                 
-                # """Save the send_status_interval value to persistent data."""
-                # self.app.bot_data['send_status_interval'] = self.send_status_interval  
-                    
-                # force persistence storage to save bot data
-                await context.application.persistence.flush()        
+            try:
+                value = eval(f"{value_type}('{value}')")
+            except Exception as e:
+                await update.message.reply_text(f"Error converting value: {e} to {value_type}")
+                return            
+                
+            # Update the persistent bot user data
+            context.application.persistence.update_bot_data({key: value})                    
+            context.bot_data[key] = value              
+            self.app.bot_data[key] = value        
+                
+            # force persistence storage to save bot data
+            await context.application.persistence.flush()        
 
             await update.message.reply_text(f"Bot data updated: {key} = {value}")
             
