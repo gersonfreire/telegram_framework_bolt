@@ -680,6 +680,7 @@ class TelegramBotFramework:
                     "json": json.loads,
                     "str": str
                 }
+                value = eval(f"{value_type}('{value}')")
                 
                 if value_type in type_mapping:
                     value = type_mapping[value_type](value)
