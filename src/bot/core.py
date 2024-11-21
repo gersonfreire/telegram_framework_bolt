@@ -591,6 +591,7 @@ class TelegramBotFramework:
                 "status_message_enabled": self.status_message_enabled,
                 "send_status_interval": self.send_status_interval,
             }
+            bot_data = context.bot_data # await context.application.persistence.get_bot_data()
             bot_data_json = json.dumps(bot_data, indent=4)
             await update.message.reply_text(f"```json\n{bot_data_json}\n```", parse_mode=ParseMode.MARKDOWN)
         except Exception as e:
@@ -675,29 +676,30 @@ class TelegramBotFramework:
                 if value_type == "int":
                     value = int(value)
                     context.application.persistence.update_bot_data({key: int(value)})
-                    context.bot_data['status_message_enabled'] = int(value)
+                    context.bot_data[key] = int(value)
                 elif value_type == "float":
                     value = float(value)
                     context.application.persistence.update_bot_data({key: float(value)})
-                    context.bot_data['status_message_enabled'] = float(value)
+                    context.bot_data[key] = float(value)
                 elif value_type == "bool":
                     value = value.lower() in ("true", "1", "yes")
                     context.application.persistence.update_bot_data({key: bool(value)})
-                    context.bot_data['status_message_enabled'] = bool(value)
+                    context.bot_data[key] = bool(value)
                 elif value_type == "json":
                     value = json.loads(value)
                     context.application.persistence.update_bot_data({key: json(value)})
-                    context.bot_data['status_message_enabled'] = json(value)
+                    context.bot_data[key] = json(value)
                 else: # string type
                     # Update the persistent bot user data
                     context.application.persistence.update_bot_data({key: value})                    
-                    context.bot_data['status_message_enabled'] = value
-                    
-                # force persistence storage to save bot data
-                await context.application.persistence.flush()
+                    context.bot_data[key] = value              
+                    self.app.bot_data[key] = value        
                 
                 # """Save the send_status_interval value to persistent data."""
-                # self.app.bot_data['send_status_interval'] = self.send_status_interval                
+                # self.app.bot_data['send_status_interval'] = self.send_status_interval  
+                    
+                # force persistence storage to save bot data
+                await context.application.persistence.flush()        
 
             await update.message.reply_text(f"Bot data updated: {key} = {value}")
             
