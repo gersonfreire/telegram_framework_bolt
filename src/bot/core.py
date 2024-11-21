@@ -11,6 +11,7 @@ get external ip address on version command instead of internal local ip address
 """
 
 import asyncio
+import datetime
 from functools import wraps
 import json
 import logging
@@ -369,9 +370,19 @@ class TelegramBotFramework:
         """Show current persistent user data"""
         
         try:
-            user_data = context.user_data
-            user_data_str = "\n".join(f"{k}: {v}" for k, v in user_data.items())
-            await update.message.reply_text(f"Current user data:\n{user_data_str}")
+            # user_data = context.user_data
+            # user_data_str = "\n".join(f"{k}: {v}" for k, v in user_data.items())
+            # await update.message.reply_text(f"Current user data:\n{user_data_str}")
+            
+            # how to fix 'Object of type datetime is not JSON serializable' error
+            def default_converter(o):
+                if isinstance(o, datetime.datetime):
+                    return o.isoformat()
+                raise TypeError(f"Object of type {o.__class__.__name__} is not JSON serializable")
+
+            json_data = json.dumps(context.user_data, indent=4, default=default_converter)
+            formatted_json = f"```json\n{json_data}\n```"
+            await update.message.reply_text(f"_User persistent data:_ {os.linesep}{formatted_json}", parse_mode=ParseMode.MARKDOWN)            
             
         except Exception as e:
             self.logger.error(f"Error showing user data: {e}")
