@@ -694,7 +694,8 @@ class TelegramBotFramework:
                 value_type = "str"
                 
             try:
-                value = eval(f"{value_type}('{value}')")
+                # value = eval(f"{value_type}('{value}')")
+                value = eval(f"{value_type}({value})")
             except Exception as e:
                 await update.message.reply_text(f"Error converting value: {e} to {value_type}")
                 return            
