@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.31 set bot data item"
+__version__ = "0.4.32 set bot data item"
 
 """TODO's:
 full command line on show version and post init only for admins
