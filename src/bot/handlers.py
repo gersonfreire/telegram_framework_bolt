@@ -40,6 +40,10 @@ class CommandHandler:
                 # Initialize user_commands_from_handlers as a dictionary
                 user_commands_from_handlers = {}       
                 help_text_from_handlers = '' 
+                
+                # Sort the global_handlers dictionary by handler['command']
+                for user_id in global_handlers:
+                    global_handlers[user_id] = sorted(global_handlers[user_id], key=lambda x: x['command'])
                         
                 for user_id, handlers in global_handlers.items():
                     if user_id == 0 or user_id == update.effective_user.id:
