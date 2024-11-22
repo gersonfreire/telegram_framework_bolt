@@ -753,19 +753,16 @@ class TelegramBotFramework:
             value = args[1]
             
             # convert type of value according third parameter
-            if len(args) > 2:
+            if len(args) > 2 and args[2].lower() not in ["str"]:
                 value_type = args[2].lower()
-                
-            else: # string type
-                value_type = "str"            
+
+                try:
+                    value = eval(f"{value_type}({value})")
+                except Exception as e:
+                    await update.message.reply_text(f"Error converting value: {e} to {value_type}")
+                    return          
 
             user_id = update.effective_user.id
-
-            try:
-                value = eval(f"{value_type}({value})")
-            except Exception as e:
-                await update.message.reply_text(f"Error converting value: {e} to {value_type}")
-                return
 
             # Update the user data
             context.user_data[key] = value              
@@ -775,7 +772,7 @@ class TelegramBotFramework:
             
             # Update the persistent bot user data                  
             context.user_data[key] = value              
-            self.app.user_data[key] = value        
+            # self.app.user_data[key] = value        
                 
             # force persistence storage to save bot data
             await context.application.persistence.flush()            
