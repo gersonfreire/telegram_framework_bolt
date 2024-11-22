@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.35 sort commands on help command"
+__version__ = "0.4.36 set persistent user data item"
 
 """TODO's:
 full command line on show version and post init only for admins
@@ -750,12 +750,25 @@ class TelegramBotFramework:
                 return
 
             key = args[0]
-            value = " ".join(args[1:])
+            value = args[1]
+            
+            # convert type of value according third parameter
+            if len(args) > 2:
+                value_type = args[2].lower()
+                
+            else: # string type
+                value_type = "str"            
 
             user_id = update.effective_user.id
 
+            try:
+                value = eval(f"{value_type}({value})")
+            except Exception as e:
+                await update.message.reply_text(f"Error converting value: {e} to {value_type}")
+                return
+
             # Update the user data
-            context.user_data[key] = value
+            context.user_data[key] = value              
 
             # Update or insert persistent user data
             await context.application.persistence.update_user_data(user_id, context.user_data)
