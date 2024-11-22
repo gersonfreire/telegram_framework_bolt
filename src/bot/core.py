@@ -772,8 +772,16 @@ class TelegramBotFramework:
 
             # Update or insert persistent user data
             await context.application.persistence.update_user_data(user_id, context.user_data)
+            
+            # Update the persistent bot user data                  
+            context.user_data[key] = value              
+            self.app.user_data[key] = value        
+                
+            # force persistence storage to save bot data
+            await context.application.persistence.flush()            
 
             await update.message.reply_text(f"User data updated: {key} = {value}")
+            
         except Exception as e:
             self.logger.error(f"Error setting user data: {e}")
             await update.message.reply_text(f"An error occurred while setting user data: {e}")
