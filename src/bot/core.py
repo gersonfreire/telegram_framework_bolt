@@ -732,7 +732,39 @@ class TelegramBotFramework:
             error_message = f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}"
             self.logger.error(error_message)               
             await update.message.reply_text(error_message, parse_mode=None)
-    
+
+    @with_typing_action
+    @with_log_admin
+    @with_register_user
+    async def set_user_data(self, update: Update, context: CallbackContext) -> None:
+        """Command to set user data
+
+        Args:
+            update (Update): The update object
+            context (CallbackContext): The context object
+        """
+        try:
+            args = context.args
+            if len(args) < 2:
+                await update.message.reply_text("Please provide both the key and value.\nUsage: /set_user_data <key> <value>")
+                return
+
+            key = args[0]
+            value = " ".join(args[1:])
+
+            user_id = update.effective_user.id
+
+            # Update the user data
+            context.user_data[key] = value
+
+            # Update or insert persistent user data
+            await context.application.persistence.update_user_data(user_id, context.user_data)
+
+            await update.message.reply_text(f"User data updated: {key} = {value}")
+        except Exception as e:
+            self.logger.error(f"Error setting user data: {e}")
+            await update.message.reply_text(f"An error occurred while setting user data: {e}")
+        
     async def post_init(self, app: Application) -> None:
         """Post-initialization tasks for the bot
 
