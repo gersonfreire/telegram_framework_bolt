@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.34 sort commands on help command"
+__version__ = "0.4.35 sort commands on help command"
 
 """TODO's:
 full command line on show version and post init only for admins
@@ -384,7 +384,7 @@ class TelegramBotFramework:
             formatted_json = f"```json\n{json_data}\n```"
             await update.message.reply_text(f"_User persistent data:_ {os.linesep}{formatted_json}", parse_mode=ParseMode.MARKDOWN)
             formatted_json = f"`{json_data}`"            
-            await update.message.reply_text(f"_Copy:_ {os.linesep}{formatted_json}", parse_mode=ParseMode.MARKDOWN)            
+            # await update.message.reply_text(f"_Copy:_ {os.linesep}{formatted_json}", parse_mode=ParseMode.MARKDOWN)            
             
         except Exception as e:
             self.logger.error(f"Error showing user data: {e}")
@@ -896,6 +896,9 @@ class TelegramBotFramework:
 
         # Register the set_bot_data handler
         app.add_handler(TelegramCommandHandler("set_bot_data", self.set_bot_data, filters=filters.User(user_id=self.admin_users)))
+        
+        # register the set_user_bot command handler
+        app.add_handler(TelegramCommandHandler("set_user_data", self.set_user_data, filters=filters.User(user_id=self.admin_users)))        
 
         self.logger.info("Bot started successfully!")
         
