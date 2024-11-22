@@ -745,8 +745,10 @@ class TelegramBotFramework:
 
             user_id = update.effective_user.id
 
-            # Update the user data
-            context.user_data[key] = value                     
+            # Update the user data  
+            await context.application.persistence.update_user_data(user_id=user_id, data={key: value})           
+            context.user_data[key] = value            
+            self.app.user_data[key] = value                     
                 
             # force persistence storage to save bot data
             await context.application.persistence.flush()            
