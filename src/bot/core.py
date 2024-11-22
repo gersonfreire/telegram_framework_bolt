@@ -690,31 +690,12 @@ class TelegramBotFramework:
             if len(args) > 2:
                 value_type = args[2].lower()
                 
-                # type_mapping = {
-                #     "int": int,
-                #     "float": float,
-                #     "bool": lambda x: x.lower() in ("true", "1", "yes"),
-                #     "json": json.loads,
-                #     "str": str
-                # }
-                
-                # if value_type in type_mapping:
-                #     value = type_mapping[value_type](value)
-                #     context.application.persistence.update_bot_data({key: value})
-                #     context.bot_data[key] = value
-                # else:
-                #     await update.message.reply_text(f"Unsupported value type: {value_type}")
-                #     return
-                
-            else: # string type
-                value_type = "str"
-                
-            try:
-                # value = eval(f"{value_type}('{value}')")
-                value = eval(f"{value_type}({value})")
-            except Exception as e:
-                await update.message.reply_text(f"Error converting value: {e} to {value_type}")
-                return            
+                try:
+                    # value = eval(f"{value_type}('{value}')")
+                    value = eval(f"{value_type}({value})")
+                except Exception as e:
+                    await update.message.reply_text(f"Error converting value: {e} to {value_type}")
+                    return           
                 
             # Update the persistent bot user data
             context.application.persistence.update_bot_data({key: value})                    
@@ -765,10 +746,7 @@ class TelegramBotFramework:
             user_id = update.effective_user.id
 
             # Update the user data
-            context.user_data[key] = value              
-
-            # Update or insert persistent user data
-            # await context.application.persistence.update_user_data(user_id, context.user_data)        
+            context.user_data[key] = value                     
                 
             # force persistence storage to save bot data
             await context.application.persistence.flush()            
