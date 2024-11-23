@@ -98,8 +98,8 @@ class TelegramBotFramework:
     def with_register_user(handler):
         @wraps(handler)
         async def wrapper(self, update: Update, context: CallbackContext, *args, **kwargs):
+            
             try:
-                existing_user_data = context.user_data
                 
                 user_id = update.effective_user.id
                 new_user_data = {
@@ -115,7 +115,7 @@ class TelegramBotFramework:
                 }
                 
                 for key, value in new_user_data.items():
-                    # existing_user_data[key] = value
+                    context.user_data[key] = value
                     await context.application.persistence.update_user_data(user_id, data={key: value})
 
                 # Update or insert persistent user data with user_data dictionary
