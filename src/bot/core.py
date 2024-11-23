@@ -328,8 +328,8 @@ class TelegramBotFramework:
             await update.message.reply_text(f"An error occurred: {e}")
 
     @with_typing_action
-    @with_log_admin
-    @with_register_user
+    # @with_log_admin
+    # @with_register_user
     async def restart_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Command to restart the bot
 
@@ -350,8 +350,8 @@ class TelegramBotFramework:
             await update.message.reply_text(f"An error occurred while restarting the bot: {e}")
 
     @with_typing_action 
-    @with_log_admin
-    @with_register_user
+    # @with_log_admin
+    # @with_register_user
     async def stop_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Command to stop the bot
 
@@ -360,14 +360,14 @@ class TelegramBotFramework:
             context (ContextTypes.DEFAULT_TYPE): _description_
         """
         
-        try:
+        try:            
+            await context.application.persistence.flush()
+            
             # check user data
             user_data = await context.application.persistence.get_user_data()
             self.logger.debug(f"User data: {user_data}")
             
             await update.message.reply_text(f"*{update._bot.username} STOPPED!*", parse_mode=ParseMode.MARKDOWN)
-            
-            # await context.application.persistence.flush()
             await context.application.stop()
             await context.application.shutdown()
 
@@ -380,6 +380,51 @@ class TelegramBotFramework:
         except Exception as e:
             self.logger.error(f"Error stopping bot: {e}")
             await update.message.reply_text(f"An error occurred while stopping the bot: {e}")
+
+    async def cmd_stop(self) -> None:
+        if not self.running:
+            raise RuntimeError("This Application is not running!")
+
+        self._running = False
+        self.__stop_running_marker.clear()
+        self.logger.info("Application is stopping. This might take a moment.")
+
+        # Stop listening for new updates and handle all pending ones
+        if self.__update_fetcher_task:
+            if self.__update_fetcher_task.done():
+                try:
+                    self.__update_fetcher_task.result()
+                except BaseException as exc:
+                    self.logger.critical(
+                        "Fetching updates was aborted due to %r. Suppressing "
+                        "exception to ensure graceful shutdown.",
+                        exc,
+                        exc_info=True,
+                    )
+            else:
+                _STOP_SIGNAL = object()
+                await self.update_queue.put(_STOP_SIGNAL)
+                self.logger.debug("Waiting for update_queue to join")
+                await self.update_queue.join()
+                await self.__update_fetcher_task
+        self.logger.debug("Application stopped fetching of updates.")
+
+        if self._job_queue:
+            self.logger.debug("Waiting for running jobs to finish")
+            await self._job_queue.stop(wait=True)  # type: ignore[union-attr]
+            self.logger.debug("JobQueue stopped")
+
+        self.logger.debug("Waiting for `create_task` calls to be processed")
+        await asyncio.gather(*self.__create_task_tasks, return_exceptions=True)
+
+        # Make sure that this is the *last* step of stopping the application!
+        if self.persistence and self.__update_persistence_task:
+            self.logger.debug("Waiting for persistence loop to finish")
+            self.__update_persistence_event.set()
+            await self.__update_persistence_task
+            self.__update_persistence_event.clear()
+
+        self.logger.info("Application.stop() complete")
 
     @with_typing_action
     @with_log_admin
@@ -903,7 +948,8 @@ class TelegramBotFramework:
         app.add_handler(TelegramCommandHandler("git", self.cmd_git, filters=filters.User(user_id=self.admin_users)))
         
         # Register the restart command handler
-        app.add_handler(TelegramCommandHandler("restart", self.restart_bot, filters=filters.User(user_id=self.admin_users)))
+        # app.add_handler(TelegramCommandHandler("restart", self.restart_bot, filters=filters.User(user_id=self.admin_users)))
+        app.add_handler(TelegramCommandHandler("restart", self.cmd_stop, filters=filters.User(user_id=self.admin_users)))
         
         # Register the stop command handler
         app.add_handler(TelegramCommandHandler("stop", self.stop_bot, filters=filters.User(user_id=self.admin_users)))
