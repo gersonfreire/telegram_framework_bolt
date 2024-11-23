@@ -12,7 +12,7 @@ load_dotenv()
 import yaml
 from telegram import Update
 from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes
-from bot import TelegramBotFramework  # Import the TelegramBotFramework class
+from src.bot.core import TelegramBotFramework
 
 async def handle_echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echoes the user message back to the user
