@@ -835,6 +835,14 @@ class TelegramBotFramework:
                 if value.endswith('"'):
                     value = value[1:-1]
             else:
+                # TODO: handle the case when value is a list or a dictionary
+                if args[1].strip().startswith('{') and args[1].strip().endswith('}'):
+                    try:
+                        value = json.loads(args[1])
+                    except json.JSONDecodeError as e:
+                        await update.message.reply_text(f"Error parsing dictionary: {e}")
+                        return
+                
                 value = args[1]
             
             # convert type of value according third parameter
