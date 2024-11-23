@@ -49,7 +49,21 @@ def get_config_path(config_filename: str = "config.yml") -> Path:
     return config_path.parent / config_filename
 
 class TelegramBotFramework:
-    
+
+    async def send_message_to_admins(self, context: CallbackContext, message: str) -> None:
+        """Send a message to all admin users.
+
+        Args:
+            context (CallbackContext): The context object
+            message (str): The message to send
+        """
+        for chat_id in self.admin_users:
+            try:
+                await context.bot.send_message(chat_id=chat_id, text=message)
+            except Exception as e:
+                self.logger.error(f"Failed to send message to admin {chat_id}: {e}")
+        return    
+        
     async def setup_new_user(self,  update: Update, context: CallbackContext) -> None:
         
         try:
@@ -104,7 +118,6 @@ class TelegramBotFramework:
                         self.logger.error(error_message)
                         # Call the function to send the error message to all administrators
                         await self.send_message_to_admins(context, f"Error: {error_message}")
-                        return
 
                     module_name = parts[0]
                     function_name = parts[1]
@@ -115,13 +128,6 @@ class TelegramBotFramework:
                     self.logger.info(f"Executed sched_command: {sched_command} with result: {result}")
                     
                     # send the result for each administrator user
-                    for chat_id in self.admin_users:
-                        try:
-                            await context.bot.send_message(chat_id=chat_id, text=f"Result of {sched_command}:\n{result}")
-                        except Exception as e:
-                            self.logger.error(f"Failed to send result of sched_command to admin {chat_id}: {e}")
-
-                    # Call the function to send the result message to all administrators
                     await self.send_message_to_admins(context, f"Result of {sched_command}:\n{result}")
                     
                 except Exception as e:
