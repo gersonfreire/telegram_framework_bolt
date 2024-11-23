@@ -49,3 +49,10 @@ SmartMonitTestBot_bot_data
 src/examples/tlgbotfwk_test/remove_pypi.bat
 src/examples/tlgbotfwk_test/remove_pypi.py
 src/examples/tlgbotfwk_test/remove_pypi.sh
+examples/tlgfwk_test/remove_pypi.bat
+examples/tlgfwk_test/remove_pypi.py
+examples/tlgfwk_test/remove_pypi.sh
+examples/remove_pypi.bat
+examples/remove_pypi.py
+examples/remove_pypi.sh
+examples/http_server.py
