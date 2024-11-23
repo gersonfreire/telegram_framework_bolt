@@ -50,6 +50,36 @@ def get_config_path(config_filename: str = "config.yml") -> Path:
 
 class TelegramBotFramework:
     
+    async def setup_new_user(self,  update: Update, context: CallbackContext) -> None:
+        
+        try:
+            user_id = update.effective_user.id
+            
+            new_user_data = {
+                'user_id': user_id,
+                'username': update.effective_user.username,
+                'first_name': update.effective_user.first_name,
+                'last_name': update.effective_user.last_name,
+                'language_code': update.effective_user.language_code,
+                'last_message': update.message.text if not update.message.text.startswith('/') else None,
+                'last_command': update.message.text if update.message.text.startswith('/') else None,
+                'last_message_date': update.message.date if not update.message.text.startswith('/') else None,
+                'last_command_date': update.message.date if update.message.text.startswith('/') else None
+            }
+            
+            for key, value in new_user_data.items():
+                try:
+                    context.user_data[key] = value
+                    await context.application.persistence.update_user_data(user_id, data={key: value})
+                except Exception as e:
+                    self.logger.error(f"Error updating user data: {e}")
+            
+            # flush all users data to persistence
+            await context.application.persistence.flush()
+
+        except Exception as e:
+            self.logger.error(f"Error setting up new user: {e}")
+    
     async def send_status_message(self, context: CallbackContext) -> None:
         if self._load_status_message_enabled():
             for chat_id in self.admin_users:
@@ -99,35 +129,8 @@ class TelegramBotFramework:
         @wraps(handler)
         async def wrapper(self, update: Update, context: CallbackContext, *args, **kwargs):
             
-            try:
-                
-                user_id = update.effective_user.id
-                
-                new_user_data = {
-                    'user_id': user_id,
-                    'username': update.effective_user.username,
-                    'first_name': update.effective_user.first_name,
-                    'last_name': update.effective_user.last_name,
-                    'language_code': update.effective_user.language_code,
-                    'last_message': update.message.text if not update.message.text.startswith('/') else None,
-                    'last_command': update.message.text if update.message.text.startswith('/') else None,
-                    'last_message_date': update.message.date if not update.message.text.startswith('/') else None,
-                    'last_command_date': update.message.date if update.message.text.startswith('/') else None
-                }
-                
-                for key, value in new_user_data.items():
-                    try:
-                        context.user_data[key] = value
-                        await context.application.persistence.update_user_data(user_id, data={key: value})
-                    except Exception as e:
-                        self.logger.error(f"Error updating user data: {e}")
-                
-                # flush all users data to persistence
-                await context.application.persistence.flush()
-                
-                # # re-read all users data from persistence to check if data is stored correctly
-                # all_users_data = await context.application.persistence.get_user_data()
-                # this_user_data = context.user_data
+            try:                
+                await self.setup_new_user(update, context)
 
                 return await handler(self, update, context, *args, **kwargs)
             
@@ -838,9 +841,10 @@ class TelegramBotFramework:
         loop = asyncio.get_event_loop()
         bot_username = loop.run_until_complete(get_bot_username())
              
-         # just for compatible reasons with already running versions using the old your_bot_name_bot_data file
-        # bot_username = 'your_bot_name'
-        persistence = PicklePersistence(filepath=f'{bot_username}_bot_data', update_interval=5)
+        # get main script path
+        main_script_path = str(get_main_script_path())
+        self.logger.debug(f"The main script folder path is: {main_script_path}")
+        persistence = PicklePersistence(filepath=f'{main_script_path}{os.sep}{bot_username}_bot_data', update_interval=5)
 
         app = Application.builder().token(self.token).persistence(persistence).post_init(post_init=self.post_init).build()
 
