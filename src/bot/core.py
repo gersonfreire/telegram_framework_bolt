@@ -382,37 +382,41 @@ class TelegramBotFramework:
             self.logger.error(f"Error stopping bot: {e}")
             await update.message.reply_text(f"An error occurred while stopping the bot: {e}")
 
-    async def cmd_stop(self) -> None:
-        if not self.running:
+    async def cmd_stop(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not self.app.running:
             raise RuntimeError("This Application is not running!")
 
-        self._running = False
-        self.__stop_running_marker.clear()
+        self.app._running = False
+        # self.app.__stop_running_marker.clear()
         self.logger.info("Application is stopping. This might take a moment.")
 
         # Stop listening for new updates and handle all pending ones
-        if self.__update_fetcher_task:
-            if self.__update_fetcher_task.done():
-                try:
-                    self.__update_fetcher_task.result()
-                except BaseException as exc:
-                    self.logger.critical(
-                        "Fetching updates was aborted due to %r. Suppressing "
-                        "exception to ensure graceful shutdown.",
-                        exc,
-                        exc_info=True,
-                    )
-            else:
-                _STOP_SIGNAL = object()
-                await self.update_queue.put(_STOP_SIGNAL)
-                self.logger.debug("Waiting for update_queue to join")
-                await self.update_queue.join()
-                await self.__update_fetcher_task
+        # if self.app.__update_fetcher_task:
+            # if self.app.__update_fetcher_task.done():
+            #     try:
+            #         self.app.__update_fetcher_task.result()
+            #     except BaseException as exc:
+            #         self.logger.critical(
+            #             "Fetching updates was aborted due to %r. Suppressing "
+            #             "exception to ensure graceful shutdown.",
+            #             exc,
+            #             exc_info=True,
+            #         )
+            # else:
+        
+        await context.job_queue.stop(wait=False)
+        
+        _STOP_SIGNAL = object()
+        await self.app.update_queue.put(_STOP_SIGNAL)
+        self.logger.debug("Waiting for update_queue to join")
+        await self.app.update_queue.join()
+        # await self.app.__update_fetcher_task
+            
         self.logger.debug("Application stopped fetching of updates.")
 
-        if self._job_queue:
+        if self.app._job_queue:
             self.logger.debug("Waiting for running jobs to finish")
-            await self._job_queue.stop(wait=True)  # type: ignore[union-attr]
+            await self.app._job_queue.stop(wait=True)  # type: ignore[union-attr]
             self.logger.debug("JobQueue stopped")
 
         self.logger.debug("Waiting for `create_task` calls to be processed")
@@ -421,9 +425,9 @@ class TelegramBotFramework:
         # Make sure that this is the *last* step of stopping the application!
         if self.persistence and self.__update_persistence_task:
             self.logger.debug("Waiting for persistence loop to finish")
-            self.__update_persistence_event.set()
-            await self.__update_persistence_task
-            self.__update_persistence_event.clear()
+            self.app.__update_persistence_event.set()
+            await self.app.__update_persistence_task
+            self.app.__update_persistence_event.clear()
 
         self.logger.info("Application.stop() complete")
 
@@ -953,7 +957,7 @@ class TelegramBotFramework:
         
         # Register the stop command handler
         # app.add_handler(TelegramCommandHandler("stop", self.stop_bot, filters=filters.User(user_id=self.admin_users)))
-        app.add_handler(TelegramCommandHandler("restart", self.cmd_stop, filters=filters.User(user_id=self.admin_users)))
+        app.add_handler(TelegramCommandHandler("stop", self.cmd_stop, filters=filters.User(user_id=self.admin_users)))
 
         # Register the show_user_data handler
         app.add_handler(TelegramCommandHandler("show_user_data", self.show_user_data, filters=filters.User(user_id=self.admin_users)))
