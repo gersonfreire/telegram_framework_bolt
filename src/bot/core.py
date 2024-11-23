@@ -623,7 +623,12 @@ class TelegramBotFramework:
                 await update.message.reply_text("Please provide at least the module name and function name, and optionally function parameters.")
                 
                 # TODO: show a real working example
-                await update.message.reply_text("Example usage:\n/call_function my_module my_function param1 param2")
+                await update.message.reply_text("Example usage:\n/call_function pow 2,3")
+                # module_name = "math"
+                # function_name = "pow"
+                # function_params = "(2, 3)"  # Parameters as a string
+                # result = call_function(module_name, function_name, function_params)
+                # print(result)  # Output: 8.0                
                 
                 return
             
