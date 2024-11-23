@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.37 set persistent user data item"
+__version__ = "0.4.38 set persistent user data item"
 
 """TODO's:
 full command line on show version and post init only for admins
@@ -117,9 +117,6 @@ class TelegramBotFramework:
                 for key, value in new_user_data.items():
                     context.user_data[key] = value
                     await context.application.persistence.update_user_data(user_id, data={key: value})
-
-                # Update or insert persistent user data with user_data dictionary
-                # await context.application.persistence.update_user_data(user_id, data={key: value for key, value in new_user_data.items()})
                 
                 # flush all users data to persistence
                 await context.application.persistence.flush()
