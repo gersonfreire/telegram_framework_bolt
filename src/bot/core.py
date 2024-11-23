@@ -327,7 +327,7 @@ class TelegramBotFramework:
             self.logger.error(f"Error: {e}")
             await update.message.reply_text(f"An error occurred: {e}")
 
-    @with_typing_action
+    # @with_typing_action
     # @with_log_admin
     # @with_register_user
     async def restart_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
