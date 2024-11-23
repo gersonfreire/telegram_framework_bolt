@@ -829,6 +829,40 @@ class TelegramBotFramework:
         except Exception as e:
             self.logger.error(f"Error during post-initialization: {e}")
 
+    async def post_stop(self, app: Application) -> None:
+        """Post-stop tasks for the bot
+
+        Args:
+            app (Application): The application object
+        """
+        try:
+            self.logger.info("Bot is stopping...")
+            # Perform any cleanup tasks here
+            # For example, save any necessary data or close connections
+                
+            # check user data
+            user_data = await app.persistence.get_user_data()
+            
+        except Exception as e:
+            self.logger.error(f"Error during post-stop: {e}")
+            
+    async def post_shutdown(self, app: Application) -> None:
+        """Post-shutdown tasks for the bot
+
+        Args:
+        app (Application): The application object
+        """
+        try:
+            self.logger.info("Bot is shutting down...")
+            # Perform any cleanup tasks here
+            # For example, save any necessary data or close connections
+        
+            # check user data
+            user_data = await app.persistence.get_user_data()
+                            
+        except Exception as e:
+            self.logger.error(f"Error during post-shutdown: {e}")
+            
     def run(self, external_handlers: list) -> None:
         app = Application.builder().token(self.token).build()
 
@@ -843,40 +877,6 @@ class TelegramBotFramework:
         main_script_path = str(get_main_script_path().parent)
         self.logger.debug(f"The main script folder path is: {main_script_path}")
         persistence = PicklePersistence(filepath=f'{main_script_path}{os.sep}{bot_username}_bot_data', update_interval=5)
-        
-        async def post_stop(self, app: Application) -> None:
-            """Post-stop tasks for the bot
-
-            Args:
-                app (Application): The application object
-            """
-            try:
-                self.logger.info("Bot is stopping...")
-                # Perform any cleanup tasks here
-                # For example, save any necessary data or close connections
-                    
-                # check user data
-                user_data = await app.persistence.get_user_data()
-                
-            except Exception as e:
-                self.logger.error(f"Error during post-stop: {e}")
-                
-        async def post_shutdown(self, app: Application) -> None:
-            """Post-shutdown tasks for the bot
-
-            Args:
-            app (Application): The application object
-            """
-            try:
-                self.logger.info("Bot is shutting down...")
-                # Perform any cleanup tasks here
-                # For example, save any necessary data or close connections
-           
-                # check user data
-                user_data = await app.persistence.get_user_data()
-                                
-            except Exception as e:
-                self.logger.error(f"Error during post-shutdown: {e}")
 
         app = Application.builder().token(self.token).persistence(persistence).post_init(post_init=self.post_init).post_stop(post_stop=self.post_stop).post_shutdown(post_shutdown=self.post_shutdown).build()
 
