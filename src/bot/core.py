@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.42 set persistent user data item"
+__version__ = "0.4.43 set persistent user data item"
 
 """TODO's:
 full command line on show version and post init only for admins
@@ -841,8 +841,8 @@ class TelegramBotFramework:
         loop = asyncio.get_event_loop()
         bot_username = loop.run_until_complete(get_bot_username())
              
-        # get main script path
-        main_script_path = str(get_main_script_path())
+        # get main script path folder
+        main_script_path = str(get_main_script_path().parent)
         self.logger.debug(f"The main script folder path is: {main_script_path}")
         persistence = PicklePersistence(filepath=f'{main_script_path}{os.sep}{bot_username}_bot_data', update_interval=5)
 
