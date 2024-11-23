@@ -56,3 +56,6 @@ examples/remove_pypi.bat
 examples/remove_pypi.py
 examples/remove_pypi.sh
 examples/http_server.py
+src/examples/remove_pypi.bat
+src/examples/remove_pypi.py
+src/examples/remove_pypi.sh
