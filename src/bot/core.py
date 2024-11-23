@@ -778,8 +778,19 @@ class TelegramBotFramework:
                 return
 
             key = args[0]
-            # value = " ".join(args[1:])
-            value = args[1]
+            
+            # if args[1] begins with double quotes try to join the rest of arguments in one
+            if args[1].strip().startswith('"'):
+                value = " ".join(args[1:])
+                args[1] = value
+                
+                # remove args greater than 1
+                args = args[:2]
+                
+                if value.endswith('"'):
+                    value = value[1:-1]
+            else:
+                value = args[1]
             
             # convert type of value according third parameter
             if len(args) > 2:
