@@ -109,7 +109,33 @@ class TelegramBotFramework:
 
             # Check for the "sched_command" item in persistent bot data
             sched_command = self.app.bot_data.get("sched_command")
-            if sched_command:
+            
+            # TODO: if type of sched_command is dictionary then execute each item
+            if isinstance(sched_command, dict):
+                for key, value in sched_command.items():
+                    try:
+                        parts = value.split()
+                        if len(parts) < 2:
+                            error_message = f"Invalid sched_command format for key {key}. Expected at least module name and function name."
+                            self.logger.error(error_message)
+                            await self.send_message_to_admins(context, f"Error: {error_message}")
+                            continue
+
+                        module_name = parts[0]
+                        function_name = parts[1]
+                        function_params = " ".join(parts[2:])
+
+                        result = call_function(module_name, function_name, function_params)
+                        self.logger.info(f"Executed sched_command for key {key}: {value} with result: {result}")
+                        await self.send_message_to_admins(context, f"Result of {value}:\n{result}")
+                    except Exception as e:
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                        self.logger.error(f"Error executing sched_command for key {key} in {fname} at line {exc_tb.tb_lineno}: {e}")
+            
+            else:
+            # if there is a sched_command, execute it
+            # if sched_command:
                 try:
                     # Split the command into module name, function name, and parameters
                     parts = sched_command.split()
