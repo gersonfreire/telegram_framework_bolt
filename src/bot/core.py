@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.47 exec a scheduled call function"
+__version__ = "0.4.48 exec a scheduled call function"
 
 """TODO's:
 full command line on show version and post init only for admins
