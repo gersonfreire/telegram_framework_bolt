@@ -409,7 +409,7 @@ class TelegramBotFramework:
         _STOP_SIGNAL = object()
         await self.app.update_queue.put(_STOP_SIGNAL)
         self.logger.debug("Waiting for update_queue to join")
-        await self.app.update_queue.join()
+        # await self.app.update_queue.join()
         # await self.app.__update_fetcher_task
             
         self.logger.debug("Application stopped fetching of updates.")
@@ -420,16 +420,23 @@ class TelegramBotFramework:
             self.logger.debug("JobQueue stopped")
 
         self.logger.debug("Waiting for `create_task` calls to be processed")
-        await asyncio.gather(*self.__create_task_tasks, return_exceptions=True)
+        # asyncio.gather(*self.app.__create_task_tasks, return_exceptions=True)
+        # asyncio.gather(None, return_exceptions=False)
 
         # Make sure that this is the *last* step of stopping the application!
-        if self.persistence and self.__update_persistence_task:
-            self.logger.debug("Waiting for persistence loop to finish")
-            self.app.__update_persistence_event.set()
-            await self.app.__update_persistence_task
-            self.app.__update_persistence_event.clear()
+        # if self.persistence and self.app.__update_persistence_task:
+            # self.logger.debug("Waiting for persistence loop to finish")
+            # self.app.__update_persistence_event.set()
+            # await self.app.__update_persistence_task
+            # self.app.__update_persistence_event.clear()
 
         self.logger.info("Application.stop() complete")
+        
+        # args = sys.argv[:]
+        # args.insert(0, 'stop')
+        # args = None
+        os.chdir(os.getcwd())
+        os.abort()        
 
     @with_typing_action
     @with_log_admin
