@@ -46,3 +46,6 @@ src/remove_pypi.bat
 src/remove_pypi.sh
 src/remove_pypi.py
 SmartMonitTestBot_bot_data
+src/examples/tlgbotfwk_test/remove_pypi.bat
+src/examples/tlgbotfwk_test/remove_pypi.py
+src/examples/tlgbotfwk_test/remove_pypi.sh
