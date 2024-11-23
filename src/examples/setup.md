@@ -1,16 +1,6 @@
-Here is a
+### SETUP.py
 
-setup.py
-
- file for the
-
-TlgBotFwk
-
- (or
-
-tlgfwk
-
-) package, which you can use to install the package globally on your Windows Python libraries folder:
+Here is a setup.py  file for the TlgBotFwk (or tlgfwk) package, which you can use to install the package globally on your Windows Python libraries folder:
 
 ```python
 from setuptools import setup, find_packages
@@ -40,20 +30,13 @@ setup(
 
 ### Explanation:
 
-name
-
-: The name of the package.
+* name: The name of the package.
 
 - `version`: The version of the package.
 - `description`: A short description of the package.
 - `author`: The name of the author.
 - `author_email`: The email of the author.
-- 
-
-url
-
-: The URL of the package's repository (replace with your actual repository URL).
-
+- url: The URL of the package's repository (replace with your actual repository URL).
 - `packages`: Automatically find all packages in the directory.
 - `install_requires`: A list of dependencies required by the package.
 - `classifiers`: A list of classifiers that provide some additional metadata about the package.
@@ -81,18 +64,10 @@ Alternatively, you can use `pip` to install the library globally:
    ```sh
    python setup.py sdist
    ```
-2. **Install the library using `pip`**: Use `pip` to install the library globally. Replace
-
-path\to\dist\tlgfwk-0.8.7.tar.gz
-
- with the actual path to the generated distribution file:
+2. **Install the library using `pip`**: Use `pip` to install the library globally. Replace path\to\dist\tlgfwk-0.8.7.tar.gz with the actual path to the generated distribution file:
 
 ```sh
    pip install path\to\dist\tlgfwk-0.8.7.tar.gz
 ```
 
-This will install the
-
-tlgfwk
-
- library globally on your Windows machine, making it available for use in any Python script.
+This will install the tlgfwk  library globally on your Windows machine, making it available for use in any Python script.

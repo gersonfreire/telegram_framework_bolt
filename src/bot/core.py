@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.38 set persistent user data item"
+__version__ = "0.4.45 fix persistent user data"
 
 """TODO's:
 full command line on show version and post init only for admins
@@ -49,6 +49,40 @@ def get_config_path(config_filename: str = "config.yml") -> Path:
     return config_path.parent / config_filename
 
 class TelegramBotFramework:
+    
+    async def setup_new_user(self,  update: Update, context: CallbackContext) -> None:
+        
+        try:
+            user_id = update.effective_user.id
+            
+            new_user_data = {
+                'user_id': user_id,
+                'username': update.effective_user.username,
+                'first_name': update.effective_user.first_name,
+                'last_name': update.effective_user.last_name,
+                'language_code': update.effective_user.language_code,
+                'last_message': update.message.text if not update.message.text.startswith('/') else None,
+                'last_command': update.message.text if update.message.text.startswith('/') else None,
+                'last_message_date': update.message.date if not update.message.text.startswith('/') else None,
+                'last_command_date': update.message.date if update.message.text.startswith('/') else None
+            }
+            
+            for key, value in new_user_data.items():
+                try:
+                    context.user_data[key] = value
+                    await context.application.persistence.update_user_data(user_id, data={key: value})
+                except Exception as e:
+                    self.logger.error(f"Error updating user data: {e}")
+            
+            # flush all users data to persistence
+            await context.application.persistence.flush()
+            
+            # check user data
+            user_data = await context.application.persistence.get_user_data()
+            self.logger.debug(f"User data: {user_data}")
+
+        except Exception as e:
+            self.logger.error(f"Error setting up new user: {e}")
     
     async def send_status_message(self, context: CallbackContext) -> None:
         if self._load_status_message_enabled():
@@ -99,31 +133,8 @@ class TelegramBotFramework:
         @wraps(handler)
         async def wrapper(self, update: Update, context: CallbackContext, *args, **kwargs):
             
-            try:
-                
-                user_id = update.effective_user.id
-                new_user_data = {
-                    'user_id': user_id,
-                    'username': update.effective_user.username,
-                    'first_name': update.effective_user.first_name,
-                    'last_name': update.effective_user.last_name,
-                    'language_code': update.effective_user.language_code,
-                    'last_message': update.message.text if not update.message.text.startswith('/') else None,
-                    'last_command': update.message.text if update.message.text.startswith('/') else None,
-                    'last_message_date': update.message.date if not update.message.text.startswith('/') else None,
-                    'last_command_date': update.message.date if update.message.text.startswith('/') else None
-                }
-                
-                for key, value in new_user_data.items():
-                    context.user_data[key] = value
-                    await context.application.persistence.update_user_data(user_id, data={key: value})
-                
-                # flush all users data to persistence
-                await context.application.persistence.flush()
-                
-                # re-read all users data from persistence to check if data is stored correctly
-                all_users_data = await context.application.persistence.get_user_data()
-                this_user_data = context.user_data
+            try:                
+                await self.setup_new_user(update, context)
 
                 return await handler(self, update, context, *args, **kwargs)
             
@@ -316,9 +327,9 @@ class TelegramBotFramework:
             self.logger.error(f"Error: {e}")
             await update.message.reply_text(f"An error occurred: {e}")
 
-    @with_typing_action
-    @with_log_admin
-    @with_register_user
+    # @with_typing_action
+    # @with_log_admin
+    # @with_register_user
     async def restart_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Command to restart the bot
 
@@ -338,9 +349,9 @@ class TelegramBotFramework:
             self.logger.error(f"Error restarting bot: {e}")
             await update.message.reply_text(f"An error occurred while restarting the bot: {e}")
 
-    @with_typing_action 
-    @with_log_admin
-    @with_register_user
+    # @with_typing_action 
+    # @with_log_admin
+    # @with_register_user
     async def stop_bot(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Command to stop the bot
 
@@ -349,8 +360,17 @@ class TelegramBotFramework:
             context (ContextTypes.DEFAULT_TYPE): _description_
         """
         
-        try:
+        try:            
+            await context.application.persistence.flush()
+            
+            # check user data
+            user_data = await context.application.persistence.get_user_data()
+            self.logger.debug(f"User data: {user_data}")
+            
             await update.message.reply_text(f"*{update._bot.username} STOPPED!*", parse_mode=ParseMode.MARKDOWN)
+            await context.job_queue.stop()
+            await context.application.stop()
+            # await context.application.shutdown()
 
             args = sys.argv[:]
             args.insert(0, 'stop')
@@ -362,6 +382,39 @@ class TelegramBotFramework:
             self.logger.error(f"Error stopping bot: {e}")
             await update.message.reply_text(f"An error occurred while stopping the bot: {e}")
 
+    async def cmd_stop(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        try:
+            await update.message.reply_text(f"*{update._bot.username} STOPPED!*", parse_mode=ParseMode.MARKDOWN)
+            
+            if not self.app.running:
+                raise RuntimeError("This Application is not running!")
+
+            self.app._running = False
+            self.logger.info("Application is stopping. This might take a moment.")
+
+            await context.job_queue.stop(wait=False)
+            
+            _STOP_SIGNAL = object()
+            await self.app.update_queue.put(_STOP_SIGNAL)
+            self.logger.debug("Waiting for update_queue to join")
+            
+            self.logger.debug("Application stopped fetching of updates.")
+
+            if self.app._job_queue:
+                self.logger.debug("Waiting for running jobs to finish")
+            await self.app._job_queue.stop(wait=True)  # type: ignore[union-attr]
+            self.logger.debug("JobQueue stopped")
+
+            self.logger.debug("Waiting for `create_task` calls to be processed")
+
+            self.logger.info("Application.stop() complete")
+            
+            os.chdir(os.getcwd())
+            os.abort()
+        except Exception as e:
+            self.logger.error(f"Error stopping bot: {e}")
+            await update.message.reply_text(f"An error occurred while stopping the bot: {e}")
+
     @with_typing_action
     @with_log_admin
     @with_register_user
@@ -369,11 +422,7 @@ class TelegramBotFramework:
         """Show current persistent user data"""
         
         try:
-            # user_data = context.user_data
-            # user_data_str = "\n".join(f"{k}: {v}" for k, v in user_data.items())
-            # await update.message.reply_text(f"Current user data:\n{user_data_str}")
-            
-            # how to fix 'Object of type datetime is not JSON serializable' error
+            # Fix 'Object of type datetime is not JSON serializable' error
             def default_converter(o):
                 if isinstance(o, datetime.datetime):
                     return o.isoformat()
@@ -382,8 +431,7 @@ class TelegramBotFramework:
             json_data = json.dumps(context.user_data, indent=4, default=default_converter)
             formatted_json = f"```json\n{json_data}\n```"
             await update.message.reply_text(f"_User persistent data:_ {os.linesep}{formatted_json}", parse_mode=ParseMode.MARKDOWN)
-            formatted_json = f"`{json_data}`"            
-            # await update.message.reply_text(f"_Copy:_ {os.linesep}{formatted_json}", parse_mode=ParseMode.MARKDOWN)            
+            formatted_json = f"`{json_data}`"           
             
         except Exception as e:
             self.logger.error(f"Error showing user data: {e}")
@@ -750,7 +798,7 @@ class TelegramBotFramework:
             # self.app.user_data[key] = value     
             
             # check
-            # user_data = await context.application.persistence.get_user_data()       
+            user_data = await context.application.persistence.get_user_data()       
             user_data = context.user_data         
                 
             # force persistence storage to save bot data
@@ -769,6 +817,9 @@ class TelegramBotFramework:
             app (Application): The application object
         """
         try:
+            # check user data
+            user_data = await app.persistence.get_user_data()
+            
             self.logger.info("Bot post-initialization complete!")
             admin_users = self.config['bot'].get('admin_users', [])
             bot_username = (await app.bot.get_me()).username
@@ -824,6 +875,40 @@ class TelegramBotFramework:
         except Exception as e:
             self.logger.error(f"Error during post-initialization: {e}")
 
+    async def post_stop(self, app: Application) -> None:
+        """Post-stop tasks for the bot
+
+        Args:
+            app (Application): The application object
+        """
+        try:
+            self.logger.info("Bot is stopping...")
+            # Perform any cleanup tasks here
+            # For example, save any necessary data or close connections
+                
+            # check user data
+            user_data = await app.persistence.get_user_data()
+            
+        except Exception as e:
+            self.logger.error(f"Error during post-stop: {e}")
+            
+    async def post_shutdown(self, app: Application) -> None:
+        """Post-shutdown tasks for the bot
+
+        Args:
+        app (Application): The application object
+        """
+        try:
+            self.logger.info("Bot is shutting down...")
+            # Perform any cleanup tasks here
+            # For example, save any necessary data or close connections
+        
+            # check user data
+            user_data = await app.persistence.get_user_data()
+                            
+        except Exception as e:
+            self.logger.error(f"Error during post-shutdown: {e}")
+            
     def run(self, external_handlers: list) -> None:
         app = Application.builder().token(self.token).build()
 
@@ -834,11 +919,12 @@ class TelegramBotFramework:
         loop = asyncio.get_event_loop()
         bot_username = loop.run_until_complete(get_bot_username())
              
-         # just for compatible reasons with already running versions using the old your_bot_name_bot_data file
-        # bot_username = 'your_bot_name'
-        persistence = PicklePersistence(filepath=f'{bot_username}_bot_data', update_interval=5)
+        # get main script path folder
+        main_script_path = str(get_main_script_path().parent)
+        self.logger.debug(f"The main script folder path is: {main_script_path}")
+        persistence = PicklePersistence(filepath=f'{main_script_path}{os.sep}{bot_username}_bot_data', update_interval=2)
 
-        app = Application.builder().token(self.token).persistence(persistence).post_init(post_init=self.post_init).build()
+        app = Application.builder().token(self.token).persistence(persistence).post_init(post_init=self.post_init).post_stop(post_stop=self.post_stop).post_shutdown(post_shutdown=self.post_shutdown).build()
 
         # Register command handlers
         for cmd_name in self.commands:
@@ -854,7 +940,8 @@ class TelegramBotFramework:
         app.add_handler(TelegramCommandHandler("restart", self.restart_bot, filters=filters.User(user_id=self.admin_users)))
         
         # Register the stop command handler
-        app.add_handler(TelegramCommandHandler("stop", self.stop_bot, filters=filters.User(user_id=self.admin_users)))
+        # app.add_handler(TelegramCommandHandler("stop", self.stop_bot, filters=filters.User(user_id=self.admin_users)))
+        app.add_handler(TelegramCommandHandler("stop", self.cmd_stop, filters=filters.User(user_id=self.admin_users)))
 
         # Register the show_user_data handler
         app.add_handler(TelegramCommandHandler("show_user_data", self.show_user_data, filters=filters.User(user_id=self.admin_users)))

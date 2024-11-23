@@ -1,5 +1,14 @@
 import os
+import sys
+
+# Add the src directory to the Python path
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+
 from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 import yaml
 from telegram import Update
 from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes
@@ -9,8 +18,8 @@ async def handle_echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     """Echoes the user message back to the user
 
     Args:
-        update (Update): _description_
-        context (ContextTypes.DEFAULT_TYPE): _description_
+        update (Update): The update object
+        context (ContextTypes.DEFAULT_TYPE): The context object
     """
     
     user_message = update.message.text
