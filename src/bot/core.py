@@ -368,9 +368,9 @@ class TelegramBotFramework:
             self.logger.debug(f"User data: {user_data}")
             
             await update.message.reply_text(f"*{update._bot.username} STOPPED!*", parse_mode=ParseMode.MARKDOWN)
-            # await context.application.stop()
             await context.job_queue.stop()
-            await context.application.shutdown()
+            await context.application.stop()
+            # await context.application.shutdown()
 
             args = sys.argv[:]
             args.insert(0, 'stop')
@@ -952,8 +952,8 @@ class TelegramBotFramework:
         app.add_handler(TelegramCommandHandler("restart", self.restart_bot, filters=filters.User(user_id=self.admin_users)))
         
         # Register the stop command handler
-        app.add_handler(TelegramCommandHandler("stop", self.stop_bot, filters=filters.User(user_id=self.admin_users)))
-        # app.add_handler(TelegramCommandHandler("restart", self.cmd_stop, filters=filters.User(user_id=self.admin_users)))
+        # app.add_handler(TelegramCommandHandler("stop", self.stop_bot, filters=filters.User(user_id=self.admin_users)))
+        app.add_handler(TelegramCommandHandler("restart", self.cmd_stop, filters=filters.User(user_id=self.admin_users)))
 
         # Register the show_user_data handler
         app.add_handler(TelegramCommandHandler("show_user_data", self.show_user_data, filters=filters.User(user_id=self.admin_users)))
