@@ -376,11 +376,7 @@ class TelegramBotFramework:
         """Show current persistent user data"""
         
         try:
-            # user_data = context.user_data
-            # user_data_str = "\n".join(f"{k}: {v}" for k, v in user_data.items())
-            # await update.message.reply_text(f"Current user data:\n{user_data_str}")
-            
-            # how to fix 'Object of type datetime is not JSON serializable' error
+            # Fix 'Object of type datetime is not JSON serializable' error
             def default_converter(o):
                 if isinstance(o, datetime.datetime):
                     return o.isoformat()
@@ -389,8 +385,7 @@ class TelegramBotFramework:
             json_data = json.dumps(context.user_data, indent=4, default=default_converter)
             formatted_json = f"```json\n{json_data}\n```"
             await update.message.reply_text(f"_User persistent data:_ {os.linesep}{formatted_json}", parse_mode=ParseMode.MARKDOWN)
-            formatted_json = f"`{json_data}`"            
-            # await update.message.reply_text(f"_Copy:_ {os.linesep}{formatted_json}", parse_mode=ParseMode.MARKDOWN)            
+            formatted_json = f"`{json_data}`"           
             
         except Exception as e:
             self.logger.error(f"Error showing user data: {e}")
