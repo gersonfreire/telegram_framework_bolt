@@ -115,12 +115,12 @@ class TelegramBotFramework:
                     'last_command_date': update.message.date if update.message.text.startswith('/') else None
                 }
                 
-                for key, value in new_user_data.items():
-                    context.user_data[key] = value
-                    await context.application.persistence.update_user_data(user_id, data={key: value})
+                # for key, value in new_user_data.items():
+                #     context.user_data[key] = value
+                #     await context.application.persistence.update_user_data(user_id, data={key: value})
                 
                 # # flush all users data to persistence
-                await context.application.persistence.flush()
+                # await context.application.persistence.flush()
                 
                 # # re-read all users data from persistence to check if data is stored correctly
                 # all_users_data = await context.application.persistence.get_user_data()
