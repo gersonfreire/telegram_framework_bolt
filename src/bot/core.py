@@ -756,7 +756,7 @@ class TelegramBotFramework:
             # self.app.user_data[key] = value     
             
             # check
-            # user_data = await context.application.persistence.get_user_data()       
+            user_data = await context.application.persistence.get_user_data()       
             user_data = context.user_data         
                 
             # force persistence storage to save bot data
