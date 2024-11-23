@@ -101,7 +101,7 @@ class TelegramBotFramework:
                     parts = sched_command.split()
                     if len(parts) < 2:
                         self.logger.error("Invalid sched_command format. Expected at least module name and function name.")
-                    return
+                        return
 
                     module_name = parts[0]
                     function_name = parts[1]
