@@ -383,60 +383,37 @@ class TelegramBotFramework:
             await update.message.reply_text(f"An error occurred while stopping the bot: {e}")
 
     async def cmd_stop(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        if not self.app.running:
-            raise RuntimeError("This Application is not running!")
-
-        self.app._running = False
-        # self.app.__stop_running_marker.clear()
-        self.logger.info("Application is stopping. This might take a moment.")
-
-        # Stop listening for new updates and handle all pending ones
-        # if self.app.__update_fetcher_task:
-            # if self.app.__update_fetcher_task.done():
-            #     try:
-            #         self.app.__update_fetcher_task.result()
-            #     except BaseException as exc:
-            #         self.logger.critical(
-            #             "Fetching updates was aborted due to %r. Suppressing "
-            #             "exception to ensure graceful shutdown.",
-            #             exc,
-            #             exc_info=True,
-            #         )
-            # else:
-        
-        await context.job_queue.stop(wait=False)
-        
-        _STOP_SIGNAL = object()
-        await self.app.update_queue.put(_STOP_SIGNAL)
-        self.logger.debug("Waiting for update_queue to join")
-        # await self.app.update_queue.join()
-        # await self.app.__update_fetcher_task
+        try:
+            await update.message.reply_text(f"*{update._bot.username} STOPPED!*", parse_mode=ParseMode.MARKDOWN)
             
-        self.logger.debug("Application stopped fetching of updates.")
+            if not self.app.running:
+                raise RuntimeError("This Application is not running!")
 
-        if self.app._job_queue:
-            self.logger.debug("Waiting for running jobs to finish")
+            self.app._running = False
+            self.logger.info("Application is stopping. This might take a moment.")
+
+            await context.job_queue.stop(wait=False)
+            
+            _STOP_SIGNAL = object()
+            await self.app.update_queue.put(_STOP_SIGNAL)
+            self.logger.debug("Waiting for update_queue to join")
+            
+            self.logger.debug("Application stopped fetching of updates.")
+
+            if self.app._job_queue:
+                self.logger.debug("Waiting for running jobs to finish")
             await self.app._job_queue.stop(wait=True)  # type: ignore[union-attr]
             self.logger.debug("JobQueue stopped")
 
-        self.logger.debug("Waiting for `create_task` calls to be processed")
-        # asyncio.gather(*self.app.__create_task_tasks, return_exceptions=True)
-        # asyncio.gather(None, return_exceptions=False)
+            self.logger.debug("Waiting for `create_task` calls to be processed")
 
-        # Make sure that this is the *last* step of stopping the application!
-        # if self.persistence and self.app.__update_persistence_task:
-            # self.logger.debug("Waiting for persistence loop to finish")
-            # self.app.__update_persistence_event.set()
-            # await self.app.__update_persistence_task
-            # self.app.__update_persistence_event.clear()
-
-        self.logger.info("Application.stop() complete")
-        
-        # args = sys.argv[:]
-        # args.insert(0, 'stop')
-        # args = None
-        os.chdir(os.getcwd())
-        os.abort()        
+            self.logger.info("Application.stop() complete")
+            
+            os.chdir(os.getcwd())
+            os.abort()
+        except Exception as e:
+            self.logger.error(f"Error stopping bot: {e}")
+            await update.message.reply_text(f"An error occurred while stopping the bot: {e}")
 
     @with_typing_action
     @with_log_admin
