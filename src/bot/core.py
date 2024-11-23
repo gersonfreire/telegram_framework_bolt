@@ -139,8 +139,7 @@ class TelegramBotFramework:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             self.logger.error(f"Error in send_status_message in {fname} at line {exc_tb.tb_lineno}: {e}")
-
-      
+     
     def with_typing_action(handler):
         @wraps(handler)
         async def wrapper(self, update: Update, context: CallbackContext, *args, **kwargs):
