@@ -85,12 +85,41 @@ class TelegramBotFramework:
             self.logger.error(f"Error setting up new user: {e}")
     
     async def send_status_message(self, context: CallbackContext) -> None:
-        if self._load_status_message_enabled():
-            for chat_id in self.admin_users:
+        try:
+            if self._load_status_message_enabled():
+                for chat_id in self.admin_users:
+                    try:
+                        await context.bot.send_message(chat_id=chat_id, text="The bot is still active.")
+                    except Exception as e:
+                        self.logger.error(f"Failed to send status message to admin {chat_id}: {e}")
+
+            # Check for the "sched_command" item in persistent bot data
+            sched_command = self.app.bot_data.get("sched_command")
+            if sched_command:
                 try:
-                    await context.bot.send_message(chat_id=chat_id, text="The bot is still active.")
+                    # Split the command into module name, function name, and parameters
+                    parts = sched_command.split()
+                    if len(parts) < 2:
+                        self.logger.error("Invalid sched_command format. Expected at least module name and function name.")
+                    return
+
+                    module_name = parts[0]
+                    function_name = parts[1]
+                    function_params = " ".join(parts[2:])
+
+                    # Call the function using the call_function utility
+                    result = call_function(module_name, function_name, function_params)
+                    self.logger.info(f"Executed sched_command: {sched_command} with result: {result}")
                 except Exception as e:
-                    self.logger.error(f"Failed to send status message to admin {chat_id}: {e}")    
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                    self.logger.error(f"Error executing sched_command in {fname} at line {exc_tb.tb_lineno}: {e}")
+                
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            self.logger.error(f"Error in send_status_message in {fname} at line {exc_tb.tb_lineno}: {e}")
+
       
     def with_typing_action(handler):
         @wraps(handler)
