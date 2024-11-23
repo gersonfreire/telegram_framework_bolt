@@ -101,29 +101,29 @@ class TelegramBotFramework:
             
             try:
                 
-                user_id = update.effective_user.id
-                new_user_data = {
-                    'user_id': user_id,
-                    'username': update.effective_user.username,
-                    'first_name': update.effective_user.first_name,
-                    'last_name': update.effective_user.last_name,
-                    'language_code': update.effective_user.language_code,
-                    'last_message': update.message.text if not update.message.text.startswith('/') else None,
-                    'last_command': update.message.text if update.message.text.startswith('/') else None,
-                    'last_message_date': update.message.date if not update.message.text.startswith('/') else None,
-                    'last_command_date': update.message.date if update.message.text.startswith('/') else None
-                }
+                # user_id = update.effective_user.id
+                # new_user_data = {
+                #     'user_id': user_id,
+                #     'username': update.effective_user.username,
+                #     'first_name': update.effective_user.first_name,
+                #     'last_name': update.effective_user.last_name,
+                #     'language_code': update.effective_user.language_code,
+                #     'last_message': update.message.text if not update.message.text.startswith('/') else None,
+                #     'last_command': update.message.text if update.message.text.startswith('/') else None,
+                #     'last_message_date': update.message.date if not update.message.text.startswith('/') else None,
+                #     'last_command_date': update.message.date if update.message.text.startswith('/') else None
+                # }
                 
-                for key, value in new_user_data.items():
-                    context.user_data[key] = value
-                    await context.application.persistence.update_user_data(user_id, data={key: value})
+                # for key, value in new_user_data.items():
+                #     context.user_data[key] = value
+                #     await context.application.persistence.update_user_data(user_id, data={key: value})
                 
-                # flush all users data to persistence
-                await context.application.persistence.flush()
+                # # flush all users data to persistence
+                # await context.application.persistence.flush()
                 
-                # re-read all users data from persistence to check if data is stored correctly
-                all_users_data = await context.application.persistence.get_user_data()
-                this_user_data = context.user_data
+                # # re-read all users data from persistence to check if data is stored correctly
+                # all_users_data = await context.application.persistence.get_user_data()
+                # this_user_data = context.user_data
 
                 return await handler(self, update, context, *args, **kwargs)
             
