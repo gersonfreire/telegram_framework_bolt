@@ -100,7 +100,10 @@ class TelegramBotFramework:
                     # Split the command into module name, function name, and parameters
                     parts = sched_command.split()
                     if len(parts) < 2:
-                        self.logger.error("Invalid sched_command format. Expected at least module name and function name.")
+                        error_message = "Invalid sched_command format. Expected at least module name and function name."
+                        self.logger.error(error_message)
+                        # Call the function to send the error message to all administrators
+                        await self.send_message_to_admins(context, f"Error: {error_message}")
                         return
 
                     module_name = parts[0]
@@ -110,6 +113,17 @@ class TelegramBotFramework:
                     # Call the function using the call_function utility
                     result = call_function(module_name, function_name, function_params)
                     self.logger.info(f"Executed sched_command: {sched_command} with result: {result}")
+                    
+                    # send the result for each administrator user
+                    for chat_id in self.admin_users:
+                        try:
+                            await context.bot.send_message(chat_id=chat_id, text=f"Result of {sched_command}:\n{result}")
+                        except Exception as e:
+                            self.logger.error(f"Failed to send result of sched_command to admin {chat_id}: {e}")
+
+                    # Call the function to send the result message to all administrators
+                    await self.send_message_to_admins(context, f"Result of {sched_command}:\n{result}")
+                    
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
