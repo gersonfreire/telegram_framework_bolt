@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.45 fix persistent user data"
+__version__ = "0.4.46 exec a scheduled call function"
 
 """TODO's:
 full command line on show version and post init only for admins
@@ -621,6 +621,9 @@ class TelegramBotFramework:
             args = context.args
             if len(args) < 2:
                 await update.message.reply_text("Please provide at least the module name and function name, and optionally function parameters.")
+                
+                # TODO: show a real working example
+                
                 return
             
             module_name = args[0]
