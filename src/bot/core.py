@@ -112,7 +112,7 @@ class TelegramBotFramework:
                     'last_command_date': update.message.date if update.message.text.startswith('/') else None
                 }
                 
-                existing_user_data = context.application.user_data
+                existing_user_data = context.user_data
                 
                 # merge new_user_data with existing_user_data
                 new_user_data = {**existing_user_data, **new_user_data}
