@@ -76,6 +76,10 @@ class TelegramBotFramework:
             
             # flush all users data to persistence
             await context.application.persistence.flush()
+            
+            # check user data
+            user_data = await context.application.persistence.get_user_data()
+            self.logger.debug(f"User data: {user_data}")
 
         except Exception as e:
             self.logger.error(f"Error setting up new user: {e}")
