@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.41 set persistent user data item"
+__version__ = "0.4.42 set persistent user data item"
 
 """TODO's:
 full command line on show version and post init only for admins
@@ -115,12 +115,15 @@ class TelegramBotFramework:
                     'last_command_date': update.message.date if update.message.text.startswith('/') else None
                 }
                 
-                # for key, value in new_user_data.items():
-                #     context.user_data[key] = value
-                #     await context.application.persistence.update_user_data(user_id, data={key: value})
+                for key, value in new_user_data.items():
+                    try:
+                        context.user_data[key] = value
+                        await context.application.persistence.update_user_data(user_id, data={key: value})
+                    except Exception as e:
+                        self.logger.error(f"Error updating user data: {e}")
                 
-                # # flush all users data to persistence
-                # await context.application.persistence.flush()
+                # flush all users data to persistence
+                await context.application.persistence.flush()
                 
                 # # re-read all users data from persistence to check if data is stored correctly
                 # all_users_data = await context.application.persistence.get_user_data()
