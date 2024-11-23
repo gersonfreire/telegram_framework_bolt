@@ -99,6 +99,8 @@ class TelegramBotFramework:
         @wraps(handler)
         async def wrapper(self, update: Update, context: CallbackContext, *args, **kwargs):
             try:
+                existing_user_data = context.user_data
+                
                 user_id = update.effective_user.id
                 new_user_data = {
                     'user_id': user_id,
@@ -112,17 +114,12 @@ class TelegramBotFramework:
                     'last_command_date': update.message.date if update.message.text.startswith('/') else None
                 }
                 
-                existing_user_data = context.user_data
-                
-                # merge new_user_data with existing_user_data
-                new_user_data = {**existing_user_data, **new_user_data}
+                for key, value in new_user_data.items():
+                    # existing_user_data[key] = value
+                    await context.application.persistence.update_user_data(user_id, data={key: value})
 
                 # Update or insert persistent user data with user_data dictionary
-                await context.application.persistence.update_user_data(user_id, new_user_data)            
-                
-                # update or insert each item of user_data dictionary in context
-                for key, value in new_user_data.items():
-                    context.user_data[key] = value
+                # await context.application.persistence.update_user_data(user_id, data={key: value for key, value in new_user_data.items()})
                 
                 # flush all users data to persistence
                 await context.application.persistence.flush()
@@ -841,7 +838,7 @@ class TelegramBotFramework:
         bot_username = loop.run_until_complete(get_bot_username())
              
          # just for compatible reasons with already running versions using the old your_bot_name_bot_data file
-        bot_username = 'your_bot_name'
+        # bot_username = 'your_bot_name'
         persistence = PicklePersistence(filepath=f'{bot_username}_bot_data', update_interval=5)
 
         app = Application.builder().token(self.token).persistence(persistence).post_init(post_init=self.post_init).build()
