@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tlgbotfwk"
-version = "0.4.39"
+version = "0.4.40"
 description = "A powerful and extensible Python-based Telegram bot framework"
 authors = [
     { name = "Maker", email = "youremail@example.com" }
