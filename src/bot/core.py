@@ -620,15 +620,19 @@ class TelegramBotFramework:
             # Get the module name, function name, and function parameters from the command arguments
             args = context.args
             if len(args) < 2:
-                await update.message.reply_text("Please provide at least the module name and function name, and optionally function parameters.")
+                await update.message.reply_text("_Please provide at least the module name and function name, and optionally function parameters._", parse_mode=ParseMode.MARKDOWN)
                 
                 # TODO: show a real working example
-                await update.message.reply_text("Example usage:\n/call_function pow 2,3")
+                await update.message.reply_text("_Example usage:_\n`/call_function math pow 2,3`", parse_mode=ParseMode.MARKDOWN)
+                await update.message.reply_text("_Example usage:_\n`/call_function bot.util_functions hello_world_noparam`", parse_mode=ParseMode.MARKDOWN)
                 # module_name = "math"
                 # function_name = "pow"
                 # function_params = "(2, 3)"  # Parameters as a string
                 # result = call_function(module_name, function_name, function_params)
-                # print(result)  # Output: 8.0                
+                # print(result)  # Output: 8.0 
+                # module_name = "util_functions"
+                # function_name = "hello_world_noparam"
+                # function_params = "()"  # No parameters                               
                 
                 return
             
@@ -640,7 +644,13 @@ class TelegramBotFramework:
             result = call_function(module_name, function_name, function_params)
             
             # Send the result back to the user
-            await update.message.reply_text(f"Result: {result}")
+            # await update.message.reply_text(f"Result: {result}")
+            
+            json_data = json.dumps(result, indent=4)
+                        
+            formatted_json = f"```json\n{json_data}\n```"
+            await update.message.reply_text(f"_Result:_ {os.linesep}{formatted_json}", parse_mode=ParseMode.MARKDOWN)
+                        
         except Exception as e:
             self.logger.error(f"Error calling function: {e}")
             await update.message.reply_text("An error occurred while calling the function.")
