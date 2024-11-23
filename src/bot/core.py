@@ -367,7 +367,7 @@ class TelegramBotFramework:
             
             await update.message.reply_text(f"*{update._bot.username} STOPPED!*", parse_mode=ParseMode.MARKDOWN)
             
-            await context.application.persistence.flush()
+            # await context.application.persistence.flush()
             await context.application.stop()
             await context.application.shutdown()
 
