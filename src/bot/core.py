@@ -361,7 +361,15 @@ class TelegramBotFramework:
         """
         
         try:
+            # check user data
+            user_data = await context.application.persistence.get_user_data()
+            self.logger.debug(f"User data: {user_data}")
+            
             await update.message.reply_text(f"*{update._bot.username} STOPPED!*", parse_mode=ParseMode.MARKDOWN)
+            
+            await context.application.persistence.flush()
+            await context.application.stop()
+            await context.application.shutdown()
 
             args = sys.argv[:]
             args.insert(0, 'stop')
@@ -880,7 +888,7 @@ class TelegramBotFramework:
         # get main script path folder
         main_script_path = str(get_main_script_path().parent)
         self.logger.debug(f"The main script folder path is: {main_script_path}")
-        persistence = PicklePersistence(filepath=f'{main_script_path}{os.sep}{bot_username}_bot_data', update_interval=5)
+        persistence = PicklePersistence(filepath=f'{main_script_path}{os.sep}{bot_username}_bot_data', update_interval=2)
 
         app = Application.builder().token(self.token).persistence(persistence).post_init(post_init=self.post_init).post_stop(post_stop=self.post_stop).post_shutdown(post_shutdown=self.post_shutdown).build()
 
