@@ -41,7 +41,7 @@ def is_ipv6(address: str) -> bool:
     """Check if the given address is an IPv6 address."""
     return re.match(r'^[0-9a-fA-F:]+$', address) is not None
 
-def ping_host(ip_address: str = 'localhost', show_success: bool = True, user_id: int = None, return_message: bool = False, timeout: int = 500, self=None ) -> Union[bool, tuple[bool, str]]:
+def ping_host(ip_address: str = 'localhost', show_success: bool = True, user_id: int = None, return_message: bool = False, timeout: int = 500, number_of_repeating:str="3", self=None ) -> Union[bool, tuple[bool, str]]:
     """
     Pings a given IP address and returns status and optionally a message.
     Args:
@@ -59,7 +59,7 @@ def ping_host(ip_address: str = 'localhost', show_success: bool = True, user_id:
         is_ipv6_address = is_ipv6(ip_address)
         param = "-n" if platform.system().lower() == "windows" else "-c"
         timeout_param = "-w" if platform.system().lower() == "windows" else "-W"
-        parameters_list = ["ping", param, "1", timeout_param, str(timeout), ip_address]
+        parameters_list = ["ping", param, number_of_repeating, timeout_param, str(timeout), ip_address]
         command_line = " ".join(parameters_list)
         
         try:
@@ -105,7 +105,42 @@ def ping_host(ip_address: str = 'localhost', show_success: bool = True, user_id:
             return False, f"An error occurred while pinging {ip_address}: {e}, in {fname} at line {exc_tb.tb_lineno}"
         return False
 
+def ping_multiple_hosts(addresses: list[str], timeout: int = 500, number_of_repeating: str = "3") -> dict[str, dict]:
+    """
+    Pings multiple hosts and returns their status and messages.
+    
+    Args:
+        addresses (list[str]): List of IP addresses or hostnames to ping
+        timeout (int, optional): The timeout for each ping in milliseconds. Defaults to 500.
+        number_of_repeating (str, optional): Number of ping attempts per host. Defaults to "3".
+    
+    Returns:
+        dict[str, dict]: Dictionary with host as key and status dictionary as value.
+                        Status dictionary contains 'state' (bool) and 'message' (str).
+    """
+    results = {}
+    
+    for address in addresses:
+        logger.debug(f"Checking host: {address}")
+        success, message = ping_host(
+            ip_address=address,
+            timeout=timeout,
+            number_of_repeating=number_of_repeating,
+            return_message=True
+        )
+        results[address] = {
+            'state': success,
+            'message': message
+        }
+    
+    return results
+
 if __name__ == "__main__":
+
+    results = ping_multiple_hosts(["localhost", "192.168.1.1", "google.com"])
+    for host, result in results.items():
+        print(f"{host}: {'UP' if result['state'] else 'DOWN'}")
+        print(f"Details: {result['message']}")    
 
     ip_address = sys.argv[1] if len(sys.argv) > 1 else 'localhost'
     show_success = sys.argv[2].lower() == 'true' if len(sys.argv) > 2 else True
@@ -128,3 +163,12 @@ if __name__ == "__main__":
     # Test with 192.168.1.1 and a timeout of 100 milliseconds
     success, message = ping_host(ip_address="192.168.1.1", return_message=True, timeout=100)
     logger.error(f"Test with 192.168.1.1 and 100ms timeout: {message}")
+
+    # Test ping_multiple_hosts
+    hosts = ["localhost", "192.168.1.1", "google.com"]
+    results = ping_multiple_hosts(hosts)
+    for host, result in results.items():
+        if result['state']:
+            logger.info(f"{host}: {result['message']}")
+        else:
+            logger.error(f"{host}: {result['message']}")

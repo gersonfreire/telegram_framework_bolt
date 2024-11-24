@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.52 Given a function name, get the function signature and check if the parameters are correct"
+__version__ = "0.4.57 chore: Update version to 0.4.55 and refactor version string"
 
 """TODO's:
 full command line on show version and post init only for admins
@@ -32,7 +32,7 @@ from telegram.constants import ParseMode
 
 from .handlers import CommandHandler
 from .settings import Settings
-from .util_functions import call_function
+from .util_functions import call_function, call_and_convert_function, call_function_with_converted_args, convert_params, convert_values_to_types, get_function_argument_types
 
 from pathlib import Path
 import os
@@ -126,9 +126,12 @@ class TelegramBotFramework:
                         function_name = parts[1]
                         function_params = " ".join(parts[2:])
 
-                        result = call_function(module_name, function_name, function_params)
+                        # result = call_function(module_name, function_name, function_params)
+                        result = call_function_with_converted_args(module_name, function_name, function_params)
+                        
                         self.logger.info(f"Executed sched_command for {value} with result: {result}")
                         await self.send_message_to_admins(context, f"Result of {value}:\n{result}")
+                        
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -697,29 +700,16 @@ class TelegramBotFramework:
             if len(args) < 2:
                 await update.message.reply_text("_Please provide at least the module name and function name, and optionally function parameters._", parse_mode=ParseMode.MARKDOWN)
                 
-                # TODO: show a real working example
+                # show a real working example
                 await update.message.reply_text("_Example usage:_\n`/call_function math pow 2,3`", parse_mode=ParseMode.MARKDOWN)
-                await update.message.reply_text("_Example usage:_\n`/call_function bot.util_functions hello_world_noparam`", parse_mode=ParseMode.MARKDOWN)
-                # module_name = "math"
-                # function_name = "pow"
-                # function_params = "(2, 3)"  # Parameters as a string
-                # result = call_function(module_name, function_name, function_params)
-                # print(result)  # Output: 8.0 
-                # module_name = "util_functions"
-                # function_name = "hello_world_noparam"
-                # function_params = "()"  # No parameters                               
+                await update.message.reply_text("_Example usage:_\n`/call_function bot.util_functions hello_world_noparam`", parse_mode=ParseMode.MARKDOWN)                             
                 
                 return
             
             module_name = args[0]
-            function_name = args[1]
-            function_params = " ".join(args[2:])
-            
-            # Call the function using the call_function utility
-            result = call_function(module_name, function_name, function_params)
-            
-            # Send the result back to the user
-            # await update.message.reply_text(f"Result: {result}")
+            function_name = args[1]            
+            result = call_function_with_converted_args(module_name, function_name, " ".join(args[2:]))
+            logger.debug(result)             
             
             json_data = json.dumps(result, indent=4)
                         
