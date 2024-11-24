@@ -32,7 +32,7 @@ from telegram.constants import ParseMode
 
 from .handlers import CommandHandler
 from .settings import Settings
-from .util_functions import call_function, call_and_convert_function, convert_params, convert_values_to_types, get_function_argument_types
+from .util_functions import call_function, call_and_convert_function, call_function_with_converted_args, convert_params, convert_values_to_types, get_function_argument_types
 
 from pathlib import Path
 import os
@@ -704,24 +704,9 @@ class TelegramBotFramework:
                 return
             
             module_name = args[0]
-            function_name = args[1]
-            args_values = None
-            converted_values = []
-            
-            if len(args) > 2:                
-                args_values = " ".join(args[2:]) # like "2,3"
-                
-                arg_types = get_function_argument_types(module_name, function_name)
-                logger.debug(arg_types)  # Output: [<class 'float'>, <class 'float'>]
-                
-                # values = ["2", "3"]  # List of string values]
-                values = [str(str_value) for str_value in args_values.split(",")]
-                
-                converted_values = convert_values_to_types(arg_types, values)
-                logger.debug(converted_values)  # Output: [2.0, 3.0]  
-            
-            # now call the function math pow
-            result = call_and_convert_function(module_name, function_name, *converted_values)  
+            function_name = args[1]            
+            result = call_function_with_converted_args(module_name, function_name, " ".join(args[2:]))
+            logger.debug(result)             
             
             json_data = json.dumps(result, indent=4)
                         
