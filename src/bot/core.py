@@ -705,7 +705,7 @@ class TelegramBotFramework:
             
             module_name = args[0]
             function_name = args[1]
-            args_values = " ".join(args[2:])
+            args_values = " ".join(args[2:]) # like "2,3"
             
             # convert the string values to a list of string values
             # values = args_values.split(",")
@@ -720,8 +720,9 @@ class TelegramBotFramework:
             arg_types = get_function_argument_types(module_name, function_name)
             logger.debug(arg_types)  # Output: [<class 'float'>, <class 'float'>]
             
-            # values = ["2", "3"]  # List of string values
-            values = list(args[2:])
+            # values = ["2", "3"]  # List of string values]
+            values = [str(str_value) for str_value in args_values.split(",")]
+            
             converted_values = convert_values_to_types(arg_types, values)
             logger.debug(converted_values)  # Output: [2.0, 3.0]  
             
