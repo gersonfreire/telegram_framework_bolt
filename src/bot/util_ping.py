@@ -57,6 +57,7 @@ def ping_host(self=None, ip_address: str = 'localhost', show_success: bool = Tru
         is_ipv6_address = is_ipv6(ip_address)
         param = "-n" if platform.system().lower() == "windows" else "-c"
         timeout_param = "-w" if platform.system().lower() == "windows" else "-W"
+        command_line = ''
         
         try:
             if is_ipv6_address:
@@ -73,18 +74,22 @@ def ping_host(self=None, ip_address: str = 'localhost', show_success: bool = Tru
                     text=True,
                     check=True
                 )
+                
+            command_line = ' '.join(result.args)
+            logger.debug(f"Subprocess command: {command_line}")
+            
             response = result.returncode
             logger.debug(f"Ping response for {ip_address}: {response}")
             logger.debug(f"Ping output: {result.stdout}")
         except subprocess.CalledProcessError as e:
-            logger.error(f"Ping command failed with error: {e}\n{e.stdout}\n{e.stderr}")
+            logger.error(f"Ping command failed with error: {e}\n{command_line}\n{e.stdout}\n{e.stderr}")
             if return_message:
-                return False, f"Ping command failed with error: \n{e.stdout}\n{e.stderr}"
+                return False, f"Ping command failed with error: \n{command_line}\n{e.stdout}\n{e.stderr}"
             return False
         except OSError as e:
-            logger.error(f"OS error occurred while pinging {ip_address}: {e}")
+            logger.error(f"OS error occurred while pinging {ip_address}: {e}\n{command_line}")
             if return_message:
-                return False, f"OS error occurred while pinging {ip_address}: {e}"
+                return False, f"OS error occurred while pinging {ip_address}: {e}\n{command_line}"
             return False
 
         # Send a Telegram message if an instance of bot was given
@@ -94,7 +99,7 @@ def ping_host(self=None, ip_address: str = 'localhost', show_success: bool = Tru
             self.send_message_by_api(user_id, message) if response != 0 or show_success else None
         
         if return_message:
-            return response == 0, f"{ip_address} is up!\n{result.stdout}" if response == 0 else f"{ip_address} is down!\n{e.stdout}\n{e.stderr}"
+            return response == 0, f"{ip_address} is up!\n{command_line}\n{result.stdout}" if response == 0 else f"{ip_address} is down!\n{e.stdout}\n{e.stderr}"
         
         return response == 0
             
@@ -126,5 +131,5 @@ if __name__ == "__main__":
     logger.error(message)
 
     # Test with 192.168.1.1 and a timeout of 100 milliseconds
-    success, message = ping_host(ip_address="85.190.243.126", return_message=True, timeout=100)
+    success, message = ping_host(ip_address="192.168.1.1", return_message=True, timeout=100)
     logger.info(f"Test with 192.168.1.1 and 100ms timeout: {message}")
