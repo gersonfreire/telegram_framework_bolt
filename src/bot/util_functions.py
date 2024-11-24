@@ -450,7 +450,7 @@ def convert_values_to_types(arg_types: List[Type], values: List[str]) -> List[An
 
     return converted_values
 
-def call_function_with_converted_args(module_name: str, function_name: str, args_values: str) -> Any:
+def call_function_with_converted_args(module_name: str, function_name: str, args_values: str = None) -> Any:
     """
     Given a module name, function name, and a string of argument values, convert the argument values
     to the correct types and call the function.
@@ -467,7 +467,7 @@ def call_function_with_converted_args(module_name: str, function_name: str, args
         arg_types = get_function_argument_types(module_name, function_name)
         logger.debug(arg_types)  # Output: [<class 'float'>, <class 'float'>]
 
-        values = [str(str_value) for str_value in args_values.split(",")]
+        values = [str(str_value) for str_value in args_values.split(",")] if args_values else []
         converted_values = convert_values_to_types(arg_types, values)
         logger.debug(converted_values)  # Output: [2.0, 3.0]
 
@@ -483,7 +483,19 @@ if __name__ == "__main__":
     function_name = "pow"
     args_values = "2,3"
     result = call_function_with_converted_args(module_name, function_name, args_values)
-    print(result)  # Output: 8.0     
+    print(result)  # Output: 8.0  
+    
+    module_name = "util_functions"
+    function_name = "hello_world_noparam"
+    args_values = ""
+    result = call_function_with_converted_args(module_name, function_name, args_values)
+    print(result)  
+    
+    module_name = "util_functions"
+    function_name = "hello_world"
+    args_values = "ok"
+    result = call_function_with_converted_args(module_name, function_name, args_values)
+    print(result)     
 
     module_name = "util_functions"
     function_name = "hello_world"
