@@ -835,8 +835,8 @@ class TelegramBotFramework:
                 if value.endswith('"'):
                     value = value[1:-1]
             else:
-                # TODO: handle the case when value is a list or a dictionary
-                if args[1].strip().startswith('{') and args[1].strip().endswith('}'):
+                # TODO: handle the case when value is a list or a dictionary '{math pow 2,3}'
+                if args[1].strip().startswith('{') and args[-1].strip().endswith('}'):
                     try:
                         value = json.loads(args[1])
                     except json.JSONDecodeError as e:
