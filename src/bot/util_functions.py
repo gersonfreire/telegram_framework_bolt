@@ -192,16 +192,16 @@ if __name__ == "__main__":
     print(result)  # Output: 8.0
 
     # Example usage of hello_world function
-    module_name = "util_functions"
-    function_name = "hello_world"
-    function_params = "('World',)"  # Parameters as a string
-    result = call_function(module_name, function_name, function_params)
-    print(result)  # Output: Hello, World!
+    # module_name = "util_functions"
+    # function_name = "hello_world"
+    # function_params = "('World',)"  # Parameters as a string
+    # result = call_function(module_name, function_name, function_params)
+    # print(result)  # Output: Hello, World!
 
     # Example usage of hello_world_noparam function
     module_name = "util_functions"
     function_name = "hello_world_noparam"
-    function_params = "()"  # No parameters
+    function_params = ""#"()"  # No parameters
     result = call_function(module_name, function_name, function_params)
     print(result)  # Output: Hello World!
     
