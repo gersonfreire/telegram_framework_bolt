@@ -1,4 +1,4 @@
-from importlib.metadata.diagnose import inspect
+# from importlib.metadata.diagnose import inspect
 import logging
 import os
 import sys
