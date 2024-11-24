@@ -101,70 +101,72 @@ def get_and_convert_function(module_name: str, function_name: str) -> Callable:
     except AttributeError as e:
         logger.error(f"Function {function_name} not found in module {module_name}: {e}")
         raise
-
-def ping_host(ip_address: str = 'localhost', show_success: bool = True, user_id: int = None, return_message: bool = False, timeout: int = 500, self=None ) -> Union[bool, tuple[bool, str]]:
+ 
+def call_function(module_name: str, function_name: str, function_params: str) -> any:
     """
-    Pings a given IP address and returns status and optionally a message.
+    Dynamically call a function from a module with specified parameters.
+
     Args:
-        ip_address (str): The IP address of the host to ping. Defaults to 'localhost'.
-        show_success (bool, optional): If True, sends a message when the host is up. Defaults to True.
-        user_id (str, optional): The user ID to send the message to. If None, no message is sent. Defaults to None.
-        return_message (bool, optional): If True, returns (success, message) tuple. If False, returns just success. Defaults to False.
-        timeout (int, optional): The timeout for the ping command in milliseconds. Defaults to 500 milliseconds.
+        module_name (str): The name of the module.
+        function_name (str): The name of the function.
+        function_params (str): The parameters to pass to the function, as a string.
+
     Returns:
-        Union[bool, tuple[bool, str]]: Either just the success status (bool) or (success_status, message) tuple
+        any: The result of the function call.
     """
     try:
-        logger.debug(f"Pinging {ip_address} with timeout {timeout}ms...")
-
-        is_ipv6_address = is_ipv6(ip_address)
-        param = "-n" if platform.system().lower() == "windows" else "-c"
-        timeout_param = "-w" if platform.system().lower() == "windows" else "-W"
-        parameters_list = ["ping", param, "1", timeout_param, str(timeout), ip_address]
-        command_line = " ".join(parameters_list)
+        # Dynamically import the module
+        module = importlib.import_module(module_name)
         
-        try:
-            result = subprocess.run(
-                parameters_list,
-                capture_output=True,
-                text=True,
-                check=True
-            )
-                
-            logger.debug(f"Subprocess command: {command_line}")
+        # Get the function from the module
+        func = getattr(module, function_name)
+        
+        # strip the parameters string of any whitespace
+        function_params = function_params.strip()
+        
+        if len(function_params) > 0:
+            # create a list of each parameter
+            function_params = function_params.split(",") 
             
-            response = result.returncode
-            logger.debug(f"Ping response for {ip_address}: {response}")
-            logger.debug(f"Ping output: {result.stdout}")
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Ping command failed with error: {e}\n{command_line}\n{e.stdout}\n{e.stderr}")
-            if return_message:
-                return False, f"Ping command failed with error: \n{command_line}\n{e.stdout}\n{e.stderr}"
-            return False
-        except OSError as e:
-            logger.error(f"OS error occurred while pinging {ip_address}: {e}\n{command_line}")
-            if return_message:
-                return False, f"OS error occurred while pinging {ip_address}: {e}\n{command_line}"
-            return False
-
-        # Send a Telegram message if an instance of bot was given
-        if user_id and self:
-            message = f"{ip_address} is up!\n{command_line}" if response == 0 else f"{ip_address} is down!\n{command_line}"
-            logger.debug(message)
-            self.send_message_by_api(user_id, message) if response != 0 or show_success else None
-        
-        if return_message:
-            return response == 0, f"{ip_address} is up!\n{command_line}\n{result.stdout}" if response == 0 else f"{ip_address} is down!\n{e.stdout}\n{e.stderr}"
-        
-        return response == 0
+            # for each item on the parameter list, if it is non numerical, add quotes
+            for i, param in enumerate(function_params):
+                if not param.isnumeric():
+                    function_params[i] = f"'{param.strip()}'"
+                    
+            # join the list of parameters into a string
+            function_params = f'({",".join(function_params)},)'
             
+            # Convert the function parameters from string to a tuple
+            params = eval(function_params)
+        else:
+            params = ()
+        
+        # Call the function with the parameters and return the result
+        result = func(*params)
+        return result
     except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logger.error(f"An error occurred while pinging {ip_address}: {e}, in {fname} at line {exc_tb.tb_lineno}")
-        if return_message:
-            return False, f"An error occurred while pinging {ip_address}: {e}, in {fname} at line {exc_tb.tb_lineno}"
-        return False
+        return f"Error: {e}"
+
+def hello_world(name: str) -> str:
+    """
+    Return a greeting message.
+
+    Args:
+        name (str): The name to include in the greeting.
+
+    Returns:
+        str: The greeting message.
+    """
+    return f"Hello, {name}!"
+
+def hello_world_noparam() -> str:
+    """
+    Return a greeting message.
+
+    Returns:
+        str: The greeting message.
+    """
+    return "Hello World!"
 
 if __name__ == "__main__":
 
@@ -199,3 +201,4 @@ if __name__ == "__main__":
     # Test with 192.168.1.1 and a timeout of 100 milliseconds
     success, message = ping_host(ip_address="192.168.1.1", return_message=True, timeout=100)
     logger.error(f"Test with 192.168.1.1 and 100ms timeout: {message}")
+    
