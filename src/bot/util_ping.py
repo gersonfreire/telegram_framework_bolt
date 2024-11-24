@@ -57,25 +57,17 @@ def ping_host(self=None, ip_address: str = 'localhost', show_success: bool = Tru
         is_ipv6_address = is_ipv6(ip_address)
         param = "-n" if platform.system().lower() == "windows" else "-c"
         timeout_param = "-w" if platform.system().lower() == "windows" else "-W"
-        command_line = ''
+        parameters_list = ["ping", param, "1", timeout_param, str(timeout), ip_address]
+        command_line = " ".join(parameters_list)
         
         try:
-            if is_ipv6_address:
-                result = subprocess.run(
-                    ["ping", param, "1", timeout_param, str(timeout), ip_address],
-                    capture_output=True,
-                    text=True,
-                    check=True
-                )
-            else:
-                result = subprocess.run(
-                    ["ping", param, "1", timeout_param, str(timeout), ip_address],
-                    capture_output=True,
-                    text=True,
-                    check=True
-                )
+            result = subprocess.run(
+                parameters_list,
+                capture_output=True,
+                text=True,
+                check=True
+            )
                 
-            command_line = ' '.join(result.args)
             logger.debug(f"Subprocess command: {command_line}")
             
             response = result.returncode
@@ -94,7 +86,7 @@ def ping_host(self=None, ip_address: str = 'localhost', show_success: bool = Tru
 
         # Send a Telegram message if an instance of bot was given
         if user_id and self:
-            message = f"{ip_address} is up!" if response == 0 else f"{ip_address} is down!"
+            message = f"{ip_address} is up!\n{command_line}" if response == 0 else f"{ip_address} is down!\n{command_line}"
             logger.debug(message)
             self.send_message_by_api(user_id, message) if response != 0 or show_success else None
         
@@ -132,4 +124,4 @@ if __name__ == "__main__":
 
     # Test with 192.168.1.1 and a timeout of 100 milliseconds
     success, message = ping_host(ip_address="192.168.1.1", return_message=True, timeout=100)
-    logger.info(f"Test with 192.168.1.1 and 100ms timeout: {message}")
+    logger.error(f"Test with 192.168.1.1 and 100ms timeout: {message}")
