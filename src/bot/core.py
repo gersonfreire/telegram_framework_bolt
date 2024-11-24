@@ -718,7 +718,8 @@ class TelegramBotFramework:
             # Call the function using the call_function utility
             # result = call_function(module_name, function_name, function_params)
             # convert function_params variable from string to tuple
-            function_params = tuple(json.loads(function_params))
+            # function_params = tuple(json.loads(function_params))
+            function_params = tuple(map(int, function_params.split(',')))
             
             result = call_and_convert_function('math', 'pow', function_params) # 2, 3)  # Returns 8.0
             
