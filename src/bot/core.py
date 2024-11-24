@@ -705,19 +705,23 @@ class TelegramBotFramework:
             
             module_name = args[0]
             function_name = args[1]
-            function_params = " ".join(args[2:])
+            args_values = " ".join(args[2:])
+            
+            # convert the string values to a list of string values
+            # values = args_values.split(",")
             
             # Call the function using the call_function utility
             # result = call_function(module_name, function_name, function_params)       
                             
             # Example usage:
-            module_name = "math"
-            function_name = "pow"
+            # module_name = "math"
+            # function_name = "pow"
             
             arg_types = get_function_argument_types(module_name, function_name)
             logger.debug(arg_types)  # Output: [<class 'float'>, <class 'float'>]
             
-            values = ["2", "3"]  # List of string values
+            # values = ["2", "3"]  # List of string values
+            values = args[2:]
             converted_values = convert_values_to_types(arg_types, values)
             logger.debug(converted_values)  # Output: [2.0, 3.0]  
             
