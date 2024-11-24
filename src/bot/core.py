@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.50 util ping"
+__version__ = "0.4.51 util ping"
 
 """TODO's:
 full command line on show version and post init only for admins

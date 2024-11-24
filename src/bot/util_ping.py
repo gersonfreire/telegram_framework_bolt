@@ -39,7 +39,7 @@ def is_ipv6(address: str) -> bool:
     """Check if the given address is an IPv6 address."""
     return re.match(r'^[0-9a-fA-F:]+$', address) is not None
 
-def ping_host(self=None, ip_address: str = 'localhost', show_success: bool = True, user_id: int = None, return_message: bool = False, timeout: int = 500) -> Union[bool, tuple[bool, str]]:
+def ping_host(ip_address: str = 'localhost', show_success: bool = True, user_id: int = None, return_message: bool = False, timeout: int = 500, self=None ) -> Union[bool, tuple[bool, str]]:
     """
     Pings a given IP address and returns status and optionally a message.
     Args:
