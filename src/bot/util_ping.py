@@ -41,7 +41,7 @@ def is_ipv6(address: str) -> bool:
     """Check if the given address is an IPv6 address."""
     return re.match(r'^[0-9a-fA-F:]+$', address) is not None
 
-def ping_host(ip_address: str = 'localhost', show_success: bool = True, user_id: int = None, return_message: bool = False, timeout: int = 500, self=None ) -> Union[bool, tuple[bool, str]]:
+def ping_host(ip_address: str = 'localhost', show_success: bool = True, user_id: int = None, return_message: bool = False, timeout: int = 500, number_of_repeating:str="3", self=None ) -> Union[bool, tuple[bool, str]]:
     """
     Pings a given IP address and returns status and optionally a message.
     Args:
@@ -59,7 +59,7 @@ def ping_host(ip_address: str = 'localhost', show_success: bool = True, user_id:
         is_ipv6_address = is_ipv6(ip_address)
         param = "-n" if platform.system().lower() == "windows" else "-c"
         timeout_param = "-w" if platform.system().lower() == "windows" else "-W"
-        parameters_list = ["ping", param, "1", timeout_param, str(timeout), ip_address]
+        parameters_list = ["ping", param, number_of_repeating, timeout_param, str(timeout), ip_address]
         command_line = " ".join(parameters_list)
         
         try:
