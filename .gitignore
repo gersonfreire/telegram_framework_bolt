@@ -60,3 +60,4 @@ src/examples/remove_pypi.bat
 src/examples/remove_pypi.py
 src/examples/remove_pypi.sh
 pypí_update.bat
+pypiupdate.bat
