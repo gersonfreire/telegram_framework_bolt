@@ -103,6 +103,68 @@ def get_and_convert_function(module_name: str, function_name: str) -> Callable:
         logger.error(f"Function {function_name} not found in module {module_name}: {e}")
         raise
  
+# def fix_args_type(module_name: str, function_name: str, *args, **kwargs) -> Callable:
+def fix_args_type(module_name: str, function_name: str, args_string) -> Callable:
+    """
+    Dynamically imports a function from a module and returns a wrapper that handles type conversion.
+    
+    Args:
+        module_name (str): The name of the module containing the function
+        function_name (str): The name of the function to import
+    
+    Returns:
+        Callable: A wrapper function that handles type conversion for the target function
+    
+    Raises:
+        ImportError: If the module or function cannot be imported
+        AttributeError: If the function doesn't exist in the module
+    """
+    try:
+        # Dynamically import the module
+        module = importlib.import_module(module_name)
+        # Get the function from the module
+        func = getattr(module, function_name)
+        # Get the function's signature
+        sig = signature(func)
+        
+        args = [arg.strip() for arg in args_string.split(",")]
+        kwargs = {}
+
+        # Convert positional arguments
+        converted_args = []
+        for param_name, param in list(sig.parameters.items())[:len(args)]:
+            annotation = param.annotation
+            if annotation != param.empty:
+                try:
+                    converted_args.append(annotation(args[len(converted_args)]))
+                except (ValueError, TypeError):
+                    converted_args.append(args[len(converted_args)])
+            else:
+                converted_args.append(args[len(converted_args)])
+
+        # Convert keyword arguments
+        converted_kwargs = {}
+        for key, value in kwargs.items():
+            if key in sig.parameters:
+                annotation = sig.parameters[key].annotation
+                if annotation != sig.parameters[key].empty:
+                    try:
+                        converted_kwargs[key] = annotation(value)
+                    except (ValueError, TypeError):
+                        converted_kwargs[key] = value
+                else:
+                    converted_kwargs[key] = value
+
+        # Call the function with converted arguments
+        return converted_args, converted_kwargs
+
+    except ImportError as e:
+        logger.error(f"Failed to import module {module_name}: {e}")
+        raise
+    except AttributeError as e:
+        logger.error(f"Function {function_name} not found in module {module_name}: {e}")
+        raise
+ 
 def call_function(module_name: str, function_name: str, function_params: str) -> any:
     """
     Dynamically call a function from a module with specified parameters.
@@ -320,8 +382,9 @@ def convert_parameters_to_correct_type(module_name: str, function_name: str, par
         raise RuntimeError(f"Error converting parameters for function '{function_name}': {e}")
 
 if __name__ == "__main__":
-        
-    # from src.bot.util_functions import call_and_convert_function
+    
+    args_string = "2, 3"
+    fix_args_type('math', 'pow', args_string)
 
     # Example string of arguments
     args_string = "2, 3"

@@ -713,17 +713,6 @@ class TelegramBotFramework:
             args_list = []
             if len(function_params) > 0:    
                 args_list = convert_params(function_params)
-                
-                # Example string of arguments
-                # args_string = function_params # "2, 3"
-
-                # Convert the string to a list of arguments
-                # args_list = [arg.strip() for arg in args_string.split(",")]
-
-                # Convert the arguments to the appropriate types (e.g., int, float, etc.)
-                # In this example, we assume the arguments are integers
-                # args_list = [int(arg) for arg in args_list]
-                # args_list = [str(arg) for arg in args_list]
 
             # Call the function with the unpacked arguments
             result = call_and_convert_function(module_name,function_name, *args_list)
