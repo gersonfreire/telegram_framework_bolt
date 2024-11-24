@@ -5,7 +5,7 @@ import sys
 import platform
 import subprocess
 import re
-from typing import List, Union, Any, Callable
+from typing import List, Union, Any, Callable, Type
 from inspect import signature
 import importlib
 
@@ -381,7 +381,45 @@ def convert_parameters_to_correct_type(module_name: str, function_name: str, par
     except Exception as e:
         raise RuntimeError(f"Error converting parameters for function '{function_name}': {e}")
 
-if __name__ == "__main__":
+def get_function_argument_types(module_name: str, function_name: str) -> List[Type]:
+    """
+    Given a module name and function name, return a list of types of its input arguments.
+
+    Args:
+        module_name (str): The name of the module containing the function.
+        function_name (str): The name of the function.
+
+    Returns:
+        List[Type]: A list of types of the function's input arguments.
+    """
+    try:
+        # Dynamically import the module
+        module = importlib.import_module(module_name)
+        
+        # Get the function from the module
+        func = getattr(module, function_name)
+        
+        # Get the function signature
+        sig = inspect.signature(func)
+        
+        # Extract the types of the input arguments
+        arg_types = []
+        for param in sig.parameters.values():
+            param_type = param.annotation
+            if param_type == inspect.Parameter.empty:
+                param_type = str  # Default to str if no type annotation is provided
+            arg_types.append(param_type)
+        
+        return arg_types
+    except Exception as e:
+        raise RuntimeError(f"Error getting argument types for function '{function_name}': {e}")
+
+if __name__ == "__main__":    
+
+    module_name = "math"
+    function_name = "pow"
+    arg_types = get_function_argument_types(module_name, function_name)
+    print(arg_types)  # Output: [<class 'float'>, <class 'float'>]    
     
     args_string = "2, 3"
     fix_args_type('math', 'pow', args_string)
@@ -443,4 +481,3 @@ if __name__ == "__main__":
     function_params = ""#"()"  # No parameters
     result = call_function(module_name, function_name, function_params)
     print(result)  # Output: Hello World!
-    
