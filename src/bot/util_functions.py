@@ -26,6 +26,10 @@ def call_function(module_name: str, function_name: str, function_params: str) ->
             # create a list of each parameter
             function_params = function_params.split(",") 
             
+            # TODO: Given a function name, get the function signature and check if the parameters are correct
+            # For now, we will just add quotes to non numerical parameters
+            
+            
             # for each item on the parameter list, if it is non numerical, add quotes
             for i, param in enumerate(function_params):
                 if not param.isnumeric():
