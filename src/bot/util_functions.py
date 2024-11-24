@@ -434,7 +434,9 @@ def convert_values_to_types(arg_types: List[Type], values: List[str]) -> List[An
         ValueError: If conversion fails or if the number of values doesn't match the number of types
     """
     if len(arg_types) != len(values):
-        raise ValueError(f"Number of values ({len(values)}) does not match number of types ({len(arg_types)})")
+        # raise ValueError(f"Number of values ({len(values)}) does not match number of types ({len(arg_types)})")
+        logger.debug(f"Number of values ({len(values)}) does not match number of types ({len(arg_types)})")
+        
 
     converted_values = []
     for arg_type, value in zip(arg_types, values):
