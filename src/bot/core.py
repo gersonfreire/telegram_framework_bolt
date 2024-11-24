@@ -708,11 +708,11 @@ class TelegramBotFramework:
             function_params = " ".join(args[2:])
             
             # convert function_params variable 
-            convert_params(function_params)
+            params_converted = convert_params(function_params)
             
             # Call the function using the call_function utility
             result = call_function(module_name, function_name, function_params)            
-            # result = call_and_convert_function('math', 'pow', function_params) # 2, 3)  # Returns 8.0
+            # result = call_and_convert_function('math', 'pow', params_converted) # 2, 3)  # Returns 8.0
             
             # Send the result back to the user
             # await update.message.reply_text(f"Result: {result}")
