@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import platform
+import subprocess
 
 # Configure the logger
 logging.basicConfig(
@@ -11,6 +12,7 @@ logging.basicConfig(
         logging.StreamHandler(sys.stdout)  # Output log messages to the console
     ]
 )
+
 class CustomFormatter(logging.Formatter):
     """Custom logging formatter to add colors to log levels."""
     def format(self, record):
@@ -28,9 +30,10 @@ class CustomFormatter(logging.Formatter):
 # Update the handler to use the custom formatter
 for handler in logging.getLogger().handlers:
     handler.setFormatter(CustomFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
 logger = logging.getLogger(__name__)
 
-def ping_host(self = None, ip_address: str = 'localhost', show_success: bool = True, user_id:int = None) -> bool:
+def ping_host(self=None, ip_address: str = 'localhost', show_success: bool = True, user_id: int = None) -> bool:
     """
     Pings a given IP address and sends a message indicating whether the host is up or down.
     Args:
@@ -47,9 +50,23 @@ def ping_host(self = None, ip_address: str = 'localhost', show_success: bool = T
         logger.debug(f"Pinging {ip_address}...")
 
         param = "-n 1" if platform.system().lower() == "windows" else "-c 1"
-        response = os.system(f"pingx {param} {ip_address}") # Returns 0 if the host is up, 1 if the host is down
         
-        logger.debug(f"Ping response for {ip_address}: {response}")
+        try:
+            result = subprocess.run(
+                ["ping", param, ip_address],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            response = result.returncode
+            logger.debug(f"Ping response for {ip_address}: {response}")
+            logger.debug(f"Ping output: {result.stdout}")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Ping command failed with error: {e.stderr}")
+            return False
+        except OSError as e:
+            logger.error(f"OS error occurred while pinging {ip_address}: {e}")
+            return False
 
         # Send a Telegram message if an instance of bot was given
         if user_id and self:
