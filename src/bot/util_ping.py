@@ -95,3 +95,4 @@ if __name__ == "__main__":
 
     # Get both status and message
     success, message = ping_host(ip_address="192.168.1.1", return_message=True)
+    logger.info(message)
