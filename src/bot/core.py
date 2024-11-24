@@ -111,7 +111,7 @@ class TelegramBotFramework:
             sched_command = self.app.bot_data.get("sched_command")
             
             # TODO: if type of sched_command is dictionary then execute each item
-            if isinstance(sched_command, dict):
+            if sched_command.startswith("{") and sched_command.endswith("}"):
                 for key, value in sched_command.items():
                     try:
                         parts = value.split()
@@ -838,7 +838,13 @@ class TelegramBotFramework:
                 # TODO: handle the case when value is a list or a dictionary '{math pow 2,3}'
                 if args[1].strip().startswith('{') and args[-1].strip().endswith('}'):
                     try:
-                        value = json.loads(args[1])
+                        # value = json.loads(" ".join(args[1:]))
+                        value = " ".join(args[1:])
+                        
+                        # remove args greater than 1
+                        args[1] = value
+                        args = args[:2]      
+                                          
                     except json.JSONDecodeError as e:
                         await update.message.reply_text(f"Error parsing dictionary: {e}")
                         return
