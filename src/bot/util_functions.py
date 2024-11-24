@@ -147,6 +147,54 @@ def call_function(module_name: str, function_name: str, function_params: str) ->
         return result
     except Exception as e:
         return f"Error: {e}"
+ 
+# def convert_params(module_name: str, function_name: str, function_params: str) -> any:
+def convert_params(function_params: str) -> any:
+    """
+    Dynamically call a function from a module with specified parameters.
+
+    Args:
+        module_name (str): The name of the module.
+        function_name (str): The name of the function.
+        function_params (str): The parameters to pass to the function, as a string.
+
+    Returns:
+        any: The result of the function call.
+    """
+    try:
+        # # Dynamically import the module
+        # module = importlib.import_module(module_name)
+        
+        # # Get the function from the module
+        # func = getattr(module, function_name)
+        
+        # strip the parameters string of any whitespace
+        function_params = function_params.strip()
+        
+        if len(function_params) > 0:
+            # create a list of each parameter
+            function_params = function_params.split(",") 
+            
+            # for each item on the parameter list, if it is non numerical, add quotes
+            for i, param in enumerate(function_params):
+                if not param.strip().isnumeric():
+                    function_params[i] = f"'{param.strip()}'"
+                    
+            # join the list of parameters into a string
+            function_params = f'({",".join(function_params)},)'
+            
+            # Convert the function parameters from string to a tuple
+            params = eval(function_params)
+        else:
+            params = ()
+        
+        # Call the function with the parameters and return the result
+        # result = func(*params)
+        # return result
+        return params
+    
+    except Exception as e:
+        return f"Error: {e}"
 
 def hello_world(name: str) -> str:
     """

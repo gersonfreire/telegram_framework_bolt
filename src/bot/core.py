@@ -32,7 +32,7 @@ from telegram.constants import ParseMode
 
 from .handlers import CommandHandler
 from .settings import Settings
-from .util_functions import call_function, call_and_convert_function
+from .util_functions import call_function, call_and_convert_function, convert_params
 
 from pathlib import Path
 import os
@@ -699,15 +699,7 @@ class TelegramBotFramework:
                 
                 # TODO: show a real working example
                 await update.message.reply_text("_Example usage:_\n`/call_function math pow 2,3`", parse_mode=ParseMode.MARKDOWN)
-                await update.message.reply_text("_Example usage:_\n`/call_function bot.util_functions hello_world_noparam`", parse_mode=ParseMode.MARKDOWN)
-                # module_name = "math"
-                # function_name = "pow"
-                # function_params = "(2, 3)"  # Parameters as a string
-                # result = call_function(module_name, function_name, function_params)
-                # print(result)  # Output: 8.0 
-                # module_name = "util_functions"
-                # function_name = "hello_world_noparam"
-                # function_params = "()"  # No parameters                               
+                await update.message.reply_text("_Example usage:_\n`/call_function bot.util_functions hello_world_noparam`", parse_mode=ParseMode.MARKDOWN)                             
                 
                 return
             
@@ -715,13 +707,12 @@ class TelegramBotFramework:
             function_name = args[1]
             function_params = " ".join(args[2:])
             
-            # Call the function using the call_function utility
-            # result = call_function(module_name, function_name, function_params)
-            # convert function_params variable from string to tuple
-            # function_params = tuple(json.loads(function_params))
-            function_params = tuple(map(int, function_params.split(',')))
+            # convert function_params variable 
+            convert_params(function_params)
             
-            result = call_and_convert_function('math', 'pow', function_params) # 2, 3)  # Returns 8.0
+            # Call the function using the call_function utility
+            result = call_function(module_name, function_name, function_params)            
+            # result = call_and_convert_function('math', 'pow', function_params) # 2, 3)  # Returns 8.0
             
             # Send the result back to the user
             # await update.message.reply_text(f"Result: {result}")
