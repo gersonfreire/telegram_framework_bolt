@@ -1,3 +1,4 @@
+import os
 import re
 from pathlib import Path
 
@@ -23,17 +24,18 @@ def increment_version(version: str) -> str:
     return f"{major}.{minor}.{patch}"
 
 def update_version_in_files():
+    current_script_path = Path(__file__).parent
     files_to_update = [
         {
-            "path": Path("src/bot/core.py"),
+            "path": Path(f"{current_script_path}{os.sep}core.py"),
             "pattern": r'(__version__\s*=\s*["\'])([\d.]+)(["\'])'
         },
         {
-            "path": Path("src/bot/core.py-1"),
+            "path": Path("{current_script_path}{os.sep}../../setup.py"),
             "pattern": r'(__version__\s*=\s*["\'])([\d.]+)(["\'])'
         },
         {
-            "path": Path("pyproject.toml"),
+            "path": Path("{current_script_path}{os.sep}../../pyproject.toml"),
             "pattern": r'(version\s*=\s*["\'])([\d.]+)(["\'])'
         }
     ]

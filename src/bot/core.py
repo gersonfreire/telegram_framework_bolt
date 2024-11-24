@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.56 chore: Update version to 0.4.55 and refactor version string"
+__version__ = "0.4.57 chore: Update version to 0.4.55 and refactor version string"
 
 """TODO's:
 full command line on show version and post init only for admins
