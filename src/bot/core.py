@@ -697,7 +697,7 @@ class TelegramBotFramework:
             if len(args) < 2:
                 await update.message.reply_text("_Please provide at least the module name and function name, and optionally function parameters._", parse_mode=ParseMode.MARKDOWN)
                 
-                # TODO: show a real working example
+                # show a real working example
                 await update.message.reply_text("_Example usage:_\n`/call_function math pow 2,3`", parse_mode=ParseMode.MARKDOWN)
                 await update.message.reply_text("_Example usage:_\n`/call_function bot.util_functions hello_world_noparam`", parse_mode=ParseMode.MARKDOWN)                             
                 
@@ -710,16 +710,6 @@ class TelegramBotFramework:
             
             if len(args) > 2:                
                 args_values = " ".join(args[2:]) # like "2,3"
-                
-                # convert the string values to a list of string values
-                # values = args_values.split(",")
-                
-                # Call the function using the call_function utility
-                # result = call_function(module_name, function_name, function_params)       
-                                
-                # Example usage:
-                # module_name = "math"
-                # function_name = "pow"
                 
                 arg_types = get_function_argument_types(module_name, function_name)
                 logger.debug(arg_types)  # Output: [<class 'float'>, <class 'float'>]

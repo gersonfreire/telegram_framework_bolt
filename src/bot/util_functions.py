@@ -1,4 +1,5 @@
 # from importlib.metadata.diagnose import inspect
+import inspect
 import logging
 import os
 import sys
@@ -401,16 +402,16 @@ def get_function_argument_types(module_name: str, function_name: str) -> List[Ty
         
         # Special case for math module functions that work with numbers
         if module_name == 'math':
-            return [float] * len(signature(func).parameters)
+            return [float] * len(inspect.signature(func).parameters)
         
         # Get the function signature
-        sig = signature(func)
+        sig = inspect.signature(func)
         
         # Extract the types of the input arguments
         arg_types = []
         for param in sig.parameters.values():
             param_type = param.annotation
-            if param_type == param.empty:
+            if param_type == inspect.Parameter.empty:
                 param_type = str  # Default to str if no type annotation is provided
             arg_types.append(param_type)
         
@@ -449,7 +450,40 @@ def convert_values_to_types(arg_types: List[Type], values: List[str]) -> List[An
 
     return converted_values
 
-if __name__ == "__main__":    
+def call_function_with_converted_args(module_name: str, function_name: str, args_values: str) -> Any:
+    """
+    Given a module name, function name, and a string of argument values, convert the argument values
+    to the correct types and call the function.
+
+    Args:
+        module_name (str): The name of the module containing the function.
+        function_name (str): The name of the function.
+        args_values (str): The argument values as a string (e.g., "2,3").
+
+    Returns:
+        Any: The result of the function call.
+    """
+    try:
+        arg_types = get_function_argument_types(module_name, function_name)
+        logger.debug(arg_types)  # Output: [<class 'float'>, <class 'float'>]
+
+        values = [str(str_value) for str_value in args_values.split(",")]
+        converted_values = convert_values_to_types(arg_types, values)
+        logger.debug(converted_values)  # Output: [2.0, 3.0]
+
+        result = call_and_convert_function(module_name, function_name, *converted_values)
+        return result
+    except Exception as e:
+        raise RuntimeError(f"Error calling function '{function_name}' with converted arguments: {e}")
+
+if __name__ == "__main__":     
+
+    # Example usage
+    module_name = "math"
+    function_name = "pow"
+    args_values = "2,3"
+    result = call_function_with_converted_args(module_name, function_name, args_values)
+    print(result)  # Output: 8.0     
 
     module_name = "util_functions"
     function_name = "hello_world"
@@ -528,9 +562,3 @@ if __name__ == "__main__":
     function_params = ""#"()"  # No parameters
     result = call_function(module_name, function_name, function_params)
     print(result)  # Output: Hello World!
-
-    # Example usage
-    module_name = "math"
-    function_name = "pow"
-    arg_types = get_function_argument_types(module_name, function_name)
-    print(arg_types)  # Output: [<class 'float'>, <class 'float'>]
