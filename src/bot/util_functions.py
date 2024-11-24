@@ -177,6 +177,15 @@ if __name__ == "__main__":
         success, message = ping_function(ip_address="192.168.1.1", timeout="200", return_message=True)
         logger.info(f"Dynamic function test result: {success}")
         logger.info(f"Dynamic function test message: {message}")
+        
+        from util_ping import ping_host
+        
+        @get_and_convert_function('util_ping', 'ping_host')
+        def decorated_ping_host(ip_address, timeout, return_message):
+            return ping_host(ip_address=ip_address, timeout=timeout, return_message=return_message)
+        
+        decorated_ping_host(ip_address="192.168.1.1", timeout="200", return_message=True)
+        
     except Exception as e:
         logger.error(f"Dynamic function test failed: {e}")
 
