@@ -711,8 +711,20 @@ class TelegramBotFramework:
             params_converted = convert_params(function_params)
             
             # Call the function using the call_function utility
-            result = call_function(module_name, function_name, function_params)            
-            # result = call_and_convert_function('math', 'pow', params_converted) # 2, 3)  # Returns 8.0
+            # result = call_function(module_name, function_name, function_params)                       
+
+            # Example string of arguments
+            args_string = "2, 3"
+
+            # Convert the string to a list of arguments
+            args_list = [arg.strip() for arg in args_string.split(",")]
+
+            # Convert the arguments to the appropriate types (e.g., int, float, etc.)
+            # In this example, we assume the arguments are integers
+            args_list = [int(arg) for arg in args_list]
+
+            # Call the function with the unpacked arguments
+            result = call_and_convert_function('math', 'pow', *args_list)
             
             # Send the result back to the user
             # await update.message.reply_text(f"Result: {result}")
