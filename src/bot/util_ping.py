@@ -41,67 +41,6 @@ def is_ipv6(address: str) -> bool:
     """Check if the given address is an IPv6 address."""
     return re.match(r'^[0-9a-fA-F:]+$', address) is not None
 
-def get_and_convert_function(module_name: str, function_name: str) -> Callable:
-    """
-    Dynamically imports a function from a module and returns a wrapper that handles type conversion.
-    
-    Args:
-        module_name (str): The name of the module containing the function
-        function_name (str): The name of the function to import
-    
-    Returns:
-        Callable: A wrapper function that handles type conversion for the target function
-    
-    Raises:
-        ImportError: If the module or function cannot be imported
-        AttributeError: If the function doesn't exist in the module
-    """
-    try:
-        # Dynamically import the module
-        module = importlib.import_module(module_name)
-        # Get the function from the module
-        func = getattr(module, function_name)
-        # Get the function's signature
-        sig = signature(func)
-
-        def wrapper(*args, **kwargs):
-            # Convert positional arguments
-            converted_args = []
-            for param_name, param in list(sig.parameters.items())[:len(args)]:
-                annotation = param.annotation
-                if annotation != param.empty:
-                    try:
-                        converted_args.append(annotation(args[len(converted_args)]))
-                    except (ValueError, TypeError):
-                        converted_args.append(args[len(converted_args)])
-                else:
-                    converted_args.append(args[len(converted_args)])
-
-            # Convert keyword arguments
-            converted_kwargs = {}
-            for key, value in kwargs.items():
-                if key in sig.parameters:
-                    annotation = sig.parameters[key].annotation
-                    if annotation != sig.parameters[key].empty:
-                        try:
-                            converted_kwargs[key] = annotation(value)
-                        except (ValueError, TypeError):
-                            converted_kwargs[key] = value
-                    else:
-                        converted_kwargs[key] = value
-
-            # Call the function with converted arguments
-            return func(*converted_args, **converted_kwargs)
-
-        return wrapper
-
-    except ImportError as e:
-        logger.error(f"Failed to import module {module_name}: {e}")
-        raise
-    except AttributeError as e:
-        logger.error(f"Function {function_name} not found in module {module_name}: {e}")
-        raise
-
 def ping_host(ip_address: str = 'localhost', show_success: bool = True, user_id: int = None, return_message: bool = False, timeout: int = 500, self=None ) -> Union[bool, tuple[bool, str]]:
     """
     Pings a given IP address and returns status and optionally a message.
@@ -167,16 +106,6 @@ def ping_host(ip_address: str = 'localhost', show_success: bool = True, user_id:
         return False
 
 if __name__ == "__main__":
-
-    # Test the dynamic function import and conversion
-    try:
-        ping_function = get_and_convert_function('src.bot.util_ping', 'ping_host')
-        # Test with string timeout that should be converted to int
-        success, message = ping_function(ip_address="192.168.1.1", timeout="200", return_message=True)
-        logger.info(f"Dynamic function test result: {success}")
-        logger.info(f"Dynamic function test message: {message}")
-    except Exception as e:
-        logger.error(f"Dynamic function test failed: {e}")
 
     ip_address = sys.argv[1] if len(sys.argv) > 1 else 'localhost'
     show_success = sys.argv[2].lower() == 'true' if len(sys.argv) > 2 else True
