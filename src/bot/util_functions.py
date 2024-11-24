@@ -1,10 +1,11 @@
+from importlib.metadata.diagnose import inspect
 import logging
 import os
 import sys
 import platform
 import subprocess
 import re
-from typing import Union, Any, Callable
+from typing import List, Union, Any, Callable
 from inspect import signature
 import importlib
 
@@ -228,6 +229,46 @@ def call_and_convert_function(module_name: str, function_name: str, *args, **kwa
     except AttributeError as e:
         logger.error(f"Function {function_name} not found in module {module_name}: {e}")
         raise
+
+def convert_parameters_to_correct_type(module_name: str, function_name: str, parameter_values: List[str]) -> List[Any]:
+    """
+    Given a function name and a list of parameter values, get the function signature
+    and try to convert each item in the parameter list to the correct type.
+
+    Args:
+        module_name (str): The name of the module containing the function.
+        function_name (str): The name of the function.
+        parameter_values (List[str]): The list of parameter values as strings.
+
+    Returns:
+        List[Any]: The list of parameter values converted to the correct types.
+    """
+    try:
+        # Dynamically import the module
+        module = importlib.import_module(module_name)
+        
+        # Get the function from the module
+        func = getattr(module, function_name)
+        
+        # Get the function signature
+        sig = inspect.signature(func)
+        
+        # Convert the parameter values to the correct types
+        converted_params = []
+        for param, value in zip(sig.parameters.values(), parameter_values):
+            param_type = param.annotation
+            if param_type == inspect.Parameter.empty:
+                # If no type annotation is provided, assume the parameter is a string
+                param_type = str
+            try:
+                converted_value = param_type(value)
+            except ValueError:
+                raise ValueError(f"Cannot convert parameter '{param.name}' to {param_type}")
+            converted_params.append(converted_value)
+        
+        return converted_params
+    except Exception as e:
+        raise RuntimeError(f"Error converting parameters for function '{function_name}': {e}")
 
 if __name__ == "__main__":
 
