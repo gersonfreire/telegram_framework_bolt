@@ -362,13 +362,13 @@ def convert_parameters_to_correct_type(module_name: str, function_name: str, par
         func = getattr(module, function_name)
         
         # Get the function signature
-        sig = inspect.signature(func)
+        sig = signature(func)
         
         # Convert the parameter values to the correct types
         converted_params = []
         for param, value in zip(sig.parameters.values(), parameter_values):
             param_type = param.annotation
-            if param_type == inspect.Parameter.empty:
+            if param_type == param.empty:
                 # If no type annotation is provided, assume the parameter is a string
                 param_type = str
             try:
@@ -399,14 +399,18 @@ def get_function_argument_types(module_name: str, function_name: str) -> List[Ty
         # Get the function from the module
         func = getattr(module, function_name)
         
+        # Special case for math module functions that work with numbers
+        if module_name == 'math':
+            return [float] * len(signature(func).parameters)
+        
         # Get the function signature
-        sig = inspect.signature(func)
+        sig = signature(func)
         
         # Extract the types of the input arguments
         arg_types = []
         for param in sig.parameters.values():
             param_type = param.annotation
-            if param_type == inspect.Parameter.empty:
+            if param_type == param.empty:
                 param_type = str  # Default to str if no type annotation is provided
             arg_types.append(param_type)
         
@@ -414,12 +418,52 @@ def get_function_argument_types(module_name: str, function_name: str) -> List[Ty
     except Exception as e:
         raise RuntimeError(f"Error getting argument types for function '{function_name}': {e}")
 
+def convert_values_to_types(arg_types: List[Type], values: List[str]) -> List[Any]:
+    """
+    Convert a list of values to match the specified argument types.
+
+    Args:
+        arg_types (List[Type]): List of types to convert to
+        values (List[str]): List of values to convert
+
+    Returns:
+        List[Any]: List of converted values matching the specified types
+
+    Raises:
+        ValueError: If conversion fails or if the number of values doesn't match the number of types
+    """
+    if len(arg_types) != len(values):
+        raise ValueError(f"Number of values ({len(values)}) does not match number of types ({len(arg_types)})")
+
+    converted_values = []
+    for arg_type, value in zip(arg_types, values):
+        try:
+            # Handle special case for strings - remove quotes if present
+            if arg_type == str:
+                value = value.strip("'\"")
+                converted_values.append(value)
+            else:
+                converted_values.append(arg_type(value.strip()))
+        except (ValueError, TypeError) as e:
+            raise ValueError(f"Cannot convert '{value}' to {arg_type.__name__}: {str(e)}")
+
+    return converted_values
+
 if __name__ == "__main__":    
 
     module_name = "util_functions"
     function_name = "hello_world"
     arg_types = get_function_argument_types(module_name, function_name)
-    print(arg_types)  # Output: [<class 'float'>, <class 'float'>]    
+    print(arg_types)  # Output: [<class 'float'>, <class 'float'>]  
+
+    # Example usage:
+    module_name = "math"
+    function_name = "pow"
+    arg_types = get_function_argument_types(module_name, function_name)
+    print(arg_types)  # Output: [<class 'float'>, <class 'float'>]
+    values = ["2", "3"]  # List of string values
+    converted_values = convert_values_to_types(arg_types, values)
+    print(converted_values)  # Output: [2.0, 3.0]      
     
     args_string = "2, 3"
     fix_args_type('math', 'pow', args_string)
