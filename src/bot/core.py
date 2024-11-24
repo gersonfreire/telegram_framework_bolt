@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.54 Given a function name, get the function signature and check if the parameters are correct"
+__version__ = "0.4.55 chore: Update version to 0.4.55 and refactor version string"
 
 """TODO's:
 full command line on show version and post init only for admins
