@@ -47,7 +47,7 @@ def ping_host(self = None, ip_address: str = 'localhost', show_success: bool = T
         logger.debug(f"Pinging {ip_address}...")
 
         param = "-n 1" if platform.system().lower() == "windows" else "-c 1"
-        response = os.system(f"ping {param} {ip_address}") # Returns 0 if the host is up, 1 if the host is down
+        response = os.system(f"pingx {param} {ip_address}") # Returns 0 if the host is up, 1 if the host is down
         
         logger.debug(f"Ping response for {ip_address}: {response}")
 
