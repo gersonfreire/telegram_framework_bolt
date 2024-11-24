@@ -106,9 +106,12 @@ def hello_world_noparam() -> str:
 if __name__ == "__main__":
 
     # Example usage of convert_parameters_to_correct_type function
-    module_name = "math"
-    function_name = "pow"
-    parameter_values = ["2", "3"]
+    # module_name = "math"
+    # function_name = "pow"
+    # parameter_values = ["2", "3"]
+    module_name = "util_functions"
+    function_name = "hello_world"
+    parameter_values = "['World',]"  # Parameters as a string
     converted_params = convert_parameters_to_correct_type(module_name, function_name, parameter_values)
     print(converted_params)  # Output: [2.0, 3.0]
     
