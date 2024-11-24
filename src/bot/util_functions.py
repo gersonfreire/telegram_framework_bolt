@@ -416,8 +416,8 @@ def get_function_argument_types(module_name: str, function_name: str) -> List[Ty
 
 if __name__ == "__main__":    
 
-    module_name = "math"
-    function_name = "pow"
+    module_name = "util_functions"
+    function_name = "hello_world"
     arg_types = get_function_argument_types(module_name, function_name)
     print(arg_types)  # Output: [<class 'float'>, <class 'float'>]    
     
@@ -481,3 +481,9 @@ if __name__ == "__main__":
     function_params = ""#"()"  # No parameters
     result = call_function(module_name, function_name, function_params)
     print(result)  # Output: Hello World!
+
+    # Example usage
+    module_name = "math"
+    function_name = "pow"
+    arg_types = get_function_argument_types(module_name, function_name)
+    print(arg_types)  # Output: [<class 'float'>, <class 'float'>]
