@@ -463,7 +463,10 @@ if __name__ == "__main__":
     print(arg_types)  # Output: [<class 'float'>, <class 'float'>]
     values = ["2", "3"]  # List of string values
     converted_values = convert_values_to_types(arg_types, values)
-    print(converted_values)  # Output: [2.0, 3.0]      
+    print(converted_values)  # Output: [2.0, 3.0]  
+    
+    # now call the function math pow
+    result = call_and_convert_function(module_name, function_name, *converted_values)    
     
     args_string = "2, 3"
     fix_args_type('math', 'pow', args_string)
