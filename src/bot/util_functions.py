@@ -181,7 +181,8 @@ def convert_params(function_params: str) -> any:
                     function_params[i] = f"'{param.strip()}'"
                     
             # join the list of parameters into a string
-            function_params = f'({",".join(function_params)},)'
+            # function_params = f'({",".join(function_params)},)'
+            function_params = f'[{",".join(function_params)},]'
             
             # Convert the function parameters from string to a tuple
             params = eval(function_params)
