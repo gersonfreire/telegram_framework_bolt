@@ -110,13 +110,14 @@ class TelegramBotFramework:
             # Check for the "sched_command" item in persistent bot data
             sched_command = self.app.bot_data.get("sched_command")
             
-            # TODO: if type of sched_command is dictionary then execute each item
-            if sched_command.startswith("{") and sched_command.endswith("}"):
-                for key, value in sched_command.items():
+            # TODO: if type of sched_command is list then execute each item
+            if sched_command.startswith("[") and sched_command.endswith("]"):
+                sched_command = list(json.loads(sched_command))
+                for value in sched_command:
                     try:
                         parts = value.split()
                         if len(parts) < 2:
-                            error_message = f"Invalid sched_command format for key {key}. Expected at least module name and function name."
+                            error_message = f"Invalid sched_command format for {value}. Expected at least module name and function name."
                             self.logger.error(error_message)
                             await self.send_message_to_admins(context, f"Error: {error_message}")
                             continue
@@ -126,12 +127,12 @@ class TelegramBotFramework:
                         function_params = " ".join(parts[2:])
 
                         result = call_function(module_name, function_name, function_params)
-                        self.logger.info(f"Executed sched_command for key {key}: {value} with result: {result}")
+                        self.logger.info(f"Executed sched_command for {value} with result: {result}")
                         await self.send_message_to_admins(context, f"Result of {value}:\n{result}")
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        self.logger.error(f"Error executing sched_command for key {key} in {fname} at line {exc_tb.tb_lineno}: {e}")
+                        self.logger.error(f"Error executing sched_command for {value} in {fname} at line {exc_tb.tb_lineno}: {e}")
             
             else:
             # if there is a sched_command, execute it
@@ -836,9 +837,8 @@ class TelegramBotFramework:
                     value = value[1:-1]
             else:
                 # TODO: handle the case when value is a list or a dictionary '{math pow 2,3}'
-                if args[1].strip().startswith('{') and args[-1].strip().endswith('}'):
+                if args[1].strip().startswith('[') and args[-1].strip().endswith(']'):
                     try:
-                        # value = json.loads(" ".join(args[1:]))
                         value = " ".join(args[1:])
                         
                         # remove args greater than 1
@@ -846,7 +846,7 @@ class TelegramBotFramework:
                         args = args[:2]      
                                           
                     except json.JSONDecodeError as e:
-                        await update.message.reply_text(f"Error parsing dictionary: {e}")
+                        await update.message.reply_text(f"Error parsing object list or dictionary: {e}")
                         return
                 
                 value = args[1]
