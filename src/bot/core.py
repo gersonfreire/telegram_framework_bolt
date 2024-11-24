@@ -126,9 +126,12 @@ class TelegramBotFramework:
                         function_name = parts[1]
                         function_params = " ".join(parts[2:])
 
-                        result = call_function(module_name, function_name, function_params)
+                        # result = call_function(module_name, function_name, function_params)
+                        result = call_function_with_converted_args(module_name, function_name, function_params)
+                        
                         self.logger.info(f"Executed sched_command for {value} with result: {result}")
                         await self.send_message_to_admins(context, f"Result of {value}:\n{result}")
+                        
                     except Exception as e:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
