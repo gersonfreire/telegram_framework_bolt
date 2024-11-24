@@ -29,13 +29,9 @@ def ping_host(self=None, ip_address='localhost', show_success=True, user_id=None
 
         # send message if an instance of bot was given
         if self:
-            if response == 0:
-                logger.debug(f"{ip_address} is up!")
-                self.send_message_by_api(
-                    user_id, f"{ip_address} is up!") if show_success else None
-            else:
-                logger.debug(f"{ip_address} is down!")
-                self.send_message_by_api(user_id, f"{ip_address} is down!")
+            message = f"{ip_address} is up!" if response == 0 else f"{ip_address} is down!"
+            logger.debug(message)
+            self.send_message_by_api(user_id, message) if response != 0 or show_success else None
         
         return response == 0
             
