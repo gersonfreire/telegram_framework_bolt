@@ -4,7 +4,9 @@ import sys
 import platform
 import subprocess
 import re
-from typing import Union
+from typing import Union, Any, Callable
+from inspect import signature
+import importlib
 
 # Configure the logger
 logging.basicConfig(
@@ -28,7 +30,7 @@ class CustomFormatter(logging.Formatter):
         log_color = log_colors.get(record.levelno, "")
         record.msg = f"{log_color}{record.msg}{reset_color}"
         return super().format(record)
-
+  
 # Update the handler to use the custom formatter
 for handler in logging.getLogger().handlers:
     handler.setFormatter(CustomFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
@@ -104,6 +106,7 @@ def ping_host(ip_address: str = 'localhost', show_success: bool = True, user_id:
         return False
 
 if __name__ == "__main__":
+
     ip_address = sys.argv[1] if len(sys.argv) > 1 else 'localhost'
     show_success = sys.argv[2].lower() == 'true' if len(sys.argv) > 2 else True
     user_id = sys.argv[3] if len(sys.argv) > 3 else None

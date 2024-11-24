@@ -1,3 +1,11 @@
+import logging
+import os
+import sys
+import platform
+import subprocess
+import re
+from typing import Union, Any, Callable
+from inspect import signature
 import importlib
 from inspect import signature
 import sys
@@ -294,6 +302,100 @@ def call_function_bad(module_name: str, function_name: str, function_params: str
     except Exception as e:
         return f"Error: {e}"
 
+# Configure the logger
+logging.basicConfig(
+    level=logging.DEBUG,  # Set the logging level to DEBUG to capture all messages
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Include date and time in the log messages
+    handlers=[
+        logging.StreamHandler(sys.stdout)  # Output log messages to the console
+    ]
+)
+
+class CustomFormatter(logging.Formatter):
+    """Custom logging formatter to add colors to log levels."""
+    def format(self, record):
+        log_colors = {
+            logging.ERROR: "\033[91m",  # Red
+            logging.WARNING: "\033[93m",  # Yellow
+            logging.INFO: "\033[92m",  # Green
+            logging.DEBUG: "\033[94m",  # Blue
+        }
+        reset_color = "\033[0m"
+        log_color = log_colors.get(record.levelno, "")
+        record.msg = f"{log_color}{record.msg}{reset_color}"
+        return super().format(record)
+
+# Update the handler to use the custom formatter
+for handler in logging.getLogger().handlers:
+    handler.setFormatter(CustomFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
+logger = logging.getLogger(__name__)
+
+def is_ipv6(address: str) -> bool:
+    """Check if the given address is an IPv6 address."""
+    return re.match(r'^[0-9a-fA-F:]+$', address) is not None
+
+def get_and_convert_function(module_name: str, function_name: str) -> Callable:
+    """
+    Dynamically imports a function from a module and returns a wrapper that handles type conversion.
+    
+    Args:
+        module_name (str): The name of the module containing the function
+        function_name (str): The name of the function to import
+    
+    Returns:
+        Callable: A wrapper function that handles type conversion for the target function
+    
+    Raises:
+        ImportError: If the module or function cannot be imported
+        AttributeError: If the function doesn't exist in the module
+    """
+    try:
+        # Dynamically import the module
+        module = importlib.import_module(module_name)
+        # Get the function from the module
+        func = getattr(module, function_name)
+        # Get the function's signature
+        sig = signature(func)
+
+        def wrapper(*args, **kwargs):
+            # Convert positional arguments
+            converted_args = []
+            for param_name, param in list(sig.parameters.items())[:len(args)]:
+                annotation = param.annotation
+                if annotation != param.empty:
+                    try:
+                        converted_args.append(annotation(args[len(converted_args)]))
+                    except (ValueError, TypeError):
+                        converted_args.append(args[len(converted_args)])
+                else:
+                    converted_args.append(args[len(converted_args)])
+
+            # Convert keyword arguments
+            converted_kwargs = {}
+            for key, value in kwargs.items():
+                if key in sig.parameters:
+                    annotation = sig.parameters[key].annotation
+                    if annotation != sig.parameters[key].empty:
+                        try:
+                            converted_kwargs[key] = annotation(value)
+                        except (ValueError, TypeError):
+                            converted_kwargs[key] = value
+                    else:
+                        converted_kwargs[key] = value
+
+            # Call the function with converted arguments
+            return func(*converted_args, **converted_kwargs)
+
+        return wrapper
+
+    except ImportError as e:
+        logger.error(f"Failed to import module {module_name}: {e}")
+        raise
+    except AttributeError as e:
+        logger.error(f"Function {function_name} not found in module {module_name}: {e}")
+        raise
+ 
 def call_function(module_name: str, function_name: str, function_params: str) -> any:
     """
     Dynamically call a function from a module with specified parameters.
@@ -322,7 +424,7 @@ def call_function(module_name: str, function_name: str, function_params: str) ->
             
             # for each item on the parameter list, if it is non numerical, add quotes
             for i, param in enumerate(function_params):
-                if not param.isnumeric():
+                if not param.strip().isnumeric():
                     function_params[i] = f"'{param.strip()}'"
                     
             # join the list of parameters into a string
@@ -360,13 +462,76 @@ def hello_world_noparam() -> str:
     """
     return "Hello World!"
 
-# Example usage
-if __name__ == "__main__":
+def call_and_convert_function(module_name: str, function_name: str, *args, **kwargs) -> Any:
+    """
+    Dynamically imports a function from a module, converts arguments to the correct types,
+    and calls the function with the provided arguments.
     
+    Args:
+        module_name (str): The name of the module containing the function
+        function_name (str): The name of the function to import
+        *args: Variable positional arguments to pass to the function
+        **kwargs: Variable keyword arguments to pass to the function
+    
+    Returns:
+        Any: The result of the function call
+    
+    Raises:
+        ImportError: If the module or function cannot be imported
+        AttributeError: If the function doesn't exist in the module
+    """
+    try:
+        # Dynamically import the module
+        module = importlib.import_module(module_name)
+        # Get the function from the module
+        func = getattr(module, function_name)
+        # Get the function's signature
+        sig = signature(func)
+
+        # Convert positional arguments
+        converted_args = []
+        for param_name, param in list(sig.parameters.items())[:len(args)]:
+            annotation = param.annotation
+            if annotation != param.empty:
+                try:
+                    converted_args.append(annotation(args[len(converted_args)]))
+                except (ValueError, TypeError):
+                    converted_args.append(args[len(converted_args)])
+            else:
+                converted_args.append(args[len(converted_args)])
+
+        # Convert keyword arguments
+        converted_kwargs = {}
+        for key, value in kwargs.items():
+            if key in sig.parameters:
+                annotation = sig.parameters[key].annotation
+                if annotation != sig.parameters[key].empty:
+                    try:
+                        converted_kwargs[key] = annotation(value)
+                    except (ValueError, TypeError):
+                        converted_kwargs[key] = value
+                else:
+                    converted_kwargs[key] = value
+
+        # Call the function with converted arguments
+        return func(*converted_args, **converted_kwargs)
+
+    except ImportError as e:
+        logger.error(f"Failed to import module {module_name}: {e}")
+        raise
+    except AttributeError as e:
+        logger.error(f"Function {function_name} not found in module {module_name}: {e}")
+        raise
+
+if __name__ == "__main__":
+
     # Example usage:
     result = call_and_convert_function('math', 'pow', 2, 3)  # Returns 8.0
-    greeting = call_and_convert_function('util_functions', 'hello_world', name="World")  # Returns "Hello, World!"
-        
+    logger.info(f"Result: {result}")
+    
+    greeting = call_and_convert_function('util_functions', 'hello_world', name="World")  # Returns "Hello, World!"  
+    logger.info(f"Greeting: {greeting}")  
+
     # Test the dynamic function import and conversion
     try:
         ping_function = get_and_convert_function('util_ping', 'ping_host')
@@ -374,14 +539,6 @@ if __name__ == "__main__":
         success, message = ping_function(ip_address="192.168.1.1", timeout="200", return_message=True)
         logger.info(f"Dynamic function test result: {success}")
         logger.info(f"Dynamic function test message: {message}")
-
-        from util_ping import ping_host
-        
-        @get_and_convert_function('util_ping', 'ping_host')
-        def decorated_ping_host(ip_address, timeout, return_message):
-            return ping_host(ip_address=ip_address, timeout=timeout, return_message=return_message)
-        
-        decorated_ping_host(ip_address="192.168.1.1", timeout="200", return_message=True)
         
     except Exception as e:
         logger.error(f"Dynamic function test failed: {e}")
@@ -393,7 +550,6 @@ if __name__ == "__main__":
 
     module_name = "math"
     function_name = "pow"
-    function_params = "(2, 3)"  # Parameters as a string
     function_params = "2, 3"  # Parameters as a string
     result = call_function(module_name, function_name, function_params)
     print(result)  # Output: 8.0
@@ -411,3 +567,4 @@ if __name__ == "__main__":
     function_params = ""#"()"  # No parameters
     result = call_function(module_name, function_name, function_params)
     print(result)  # Output: Hello World!
+    
