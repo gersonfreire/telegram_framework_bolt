@@ -3,12 +3,13 @@ I notice you're likely using Cursor IDE, which is actually built on top of VS Co
 Here's how to do it:
 
 1. **First, export your keybindings from VS Code** (if you haven't already):
+
    - In VS Code, press `Ctrl+K Ctrl+S` (or `Cmd+K Cmd+S` on Mac)
    - Click the three dots (...) in the top right
    - Select "Export Keyboard Shortcuts"
    - Save the `keybindings.json` file
+2. **Import into Curs	or**:
 
-2. **Import into Cursor**:
    - Open Cursor
    - Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) to open the command palette
    - Type "Open Keyboard Shortcuts (JSON)"
@@ -17,6 +18,7 @@ Here's how to do it:
    - Save the file
 
 Alternatively, you can directly copy the keybindings file:
+
 - Windows: Copy your `keybindings.json` to `%APPDATA%\Cursor\User\`
 - Mac: Copy to `~/Library/Application Support/Cursor/User/`
 - Linux: Copy to `~/.config/Cursor/User/`
