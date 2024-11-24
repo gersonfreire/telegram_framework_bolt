@@ -1,0 +1,28 @@
+
+
+def ping_host(self, ip_address, show_success=True, user_id=None)-> Bool:
+    """
+    Pings a given IP address and sends a message indicating whether the host is up or down.
+    Args:
+        ip_address (str): The IP address of the host to ping.
+        show_success (bool, optional): If True, sends a message when the host is up. Defaults to True.
+        user_id (str, optional): The user ID to send the message to. If None, no message is sent. Defaults to None.
+    Returns:
+        None
+    Raises:
+        Exception: If an error occurs during the ping process, an error message is sent to the bot owner.    
+    """
+    
+    try:
+        # Ping logic here
+        param = "-n 1" if platform.system().lower() == "windows" else "-c 1"
+        response = os.system(f"ping {param} {ip_address}") # Returns 0 if the host is up, 1 if the host is down
+        
+        # TODO: send message just to the job owner user
+        if response == 0:
+            self.send_message_by_api(user_id, f"{ip_address} is up!") if show_success else None
+        else:
+            self.send_message_by_api(user_id, f"{ip_address} is down!")
+            
+    except Exception as e:
+        self.send_message_by_api(self.bot_owner, f"An error occurred while pinging {ip_address}: {e}")
