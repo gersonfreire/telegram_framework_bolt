@@ -185,20 +185,23 @@ if __name__ == "__main__":
     user_id = sys.argv[3] if len(sys.argv) > 3 else None
     timeout = int(sys.argv[4]) if len(sys.argv) > 4 else 500
 
-    result = ping_host(ip_address=ip_address, show_success=show_success, user_id=user_id, timeout=timeout)
-    if result:
-        logger.info(f"{ip_address} is up!")
-    else:
-        logger.error(f"{ip_address} is down!")
+    module_name = "math"
+    function_name = "pow"
+    function_params = "(2, 3)"  # Parameters as a string
+    result = call_function(module_name, function_name, function_params)
+    print(result)  # Output: 8.0
 
-    # Just get the boolean status
-    success = ping_host(ip_address="192.168.1.1")
+    # Example usage of hello_world function
+    module_name = "util_functions"
+    function_name = "hello_world"
+    function_params = "('World',)"  # Parameters as a string
+    result = call_function(module_name, function_name, function_params)
+    print(result)  # Output: Hello, World!
 
-    # Get both status and message
-    success, message = ping_host(ip_address="192.168.1.1", return_message=True)
-    logger.error(message)
-
-    # Test with 192.168.1.1 and a timeout of 100 milliseconds
-    success, message = ping_host(ip_address="192.168.1.1", return_message=True, timeout=100)
-    logger.error(f"Test with 192.168.1.1 and 100ms timeout: {message}")
+    # Example usage of hello_world_noparam function
+    module_name = "util_functions"
+    function_name = "hello_world_noparam"
+    function_params = "()"  # No parameters
+    result = call_function(module_name, function_name, function_params)
+    print(result)  # Output: Hello World!
     
