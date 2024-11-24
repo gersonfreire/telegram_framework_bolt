@@ -707,14 +707,11 @@ class TelegramBotFramework:
             function_name = args[1]
             function_params = " ".join(args[2:])
             
-            # convert function_params variable 
-            params_converted = convert_params(function_params)
-            
             # Call the function using the call_function utility
             # result = call_function(module_name, function_name, function_params)                       
 
             # Example string of arguments
-            args_string = "2, 3"
+            args_string = function_params # "2, 3"
 
             # Convert the string to a list of arguments
             args_list = [arg.strip() for arg in args_string.split(",")]
