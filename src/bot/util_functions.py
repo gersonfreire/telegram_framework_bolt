@@ -109,7 +109,7 @@ def call_function(module_name: str, function_name: str, function_params: str) ->
     Args:
         module_name (str): The name of the module.
         function_name (str): The name of the function.
-        function_params (str): The parameters to pass to the function, as a comma-delimited string.
+        function_params (str): The parameters to pass to the function, as a string.
 
     Returns:
         any: The result of the function call.
@@ -117,32 +117,33 @@ def call_function(module_name: str, function_name: str, function_params: str) ->
     try:
         # Dynamically import the module
         module = importlib.import_module(module_name)
+        
         # Get the function from the module
         func = getattr(module, function_name)
-        # Get the function's signature
-        sig = signature(func)
-
-        # Parse the parameters string
-        params = [p.strip() for p in function_params.split(',') if p.strip()]
         
-        # Convert arguments based on function signature
-        converted_args = []
-        for (param_name, param), arg in zip(sig.parameters.items(), params):
-            annotation = param.annotation
-            if annotation != param.empty:
-                try:
-                    # Handle string values that might be quoted
-                    if arg.startswith('"') or arg.startswith("'"):
-                        arg = arg.strip("'\"")
-                    converted_args.append(annotation(arg))
-                except (ValueError, TypeError):
-                    converted_args.append(arg)
-            else:
-                converted_args.append(arg)
-
-        # Call the function with converted arguments
-        return func(*converted_args)
+        # strip the parameters string of any whitespace
+        function_params = function_params.strip()
         
+        if len(function_params) > 0:
+            # create a list of each parameter
+            function_params = function_params.split(",") 
+            
+            # for each item on the parameter list, if it is non numerical, add quotes
+            for i, param in enumerate(function_params):
+                if not param.strip().isnumeric():
+                    function_params[i] = f"'{param.strip()}'"
+                    
+            # join the list of parameters into a string
+            function_params = f'({",".join(function_params)},)'
+            
+            # Convert the function parameters from string to a tuple
+            params = eval(function_params)
+        else:
+            params = ()
+        
+        # Call the function with the parameters and return the result
+        result = func(*params)
+        return result
     except Exception as e:
         return f"Error: {e}"
 
