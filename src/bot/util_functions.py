@@ -114,7 +114,40 @@ def call_function(module_name: str, function_name: str, function_params: str) ->
     Returns:
         any: The result of the function call.
     """
+    
     try:
+        # Dynamically import the module
+        module = importlib.import_module(module_name)
+        # Get the function from the module
+        func = getattr(module, function_name)
+        # Get the function's signature
+        sig = signature(func)
+                
+        # Convert positional arguments
+        converted_args = []
+        # for param_name, param in list(sig.parameters.items())[:len(args)]:
+        #     annotation = param.annotation
+        #     if annotation != param.empty:
+        #         try:
+        #             converted_args.append(annotation(args[len(converted_args)]))
+        #         except (ValueError, TypeError):
+        #             converted_args.append(args[len(converted_args)])
+        #     else:
+        #         converted_args.append(args[len(converted_args)])
+
+        # # Convert keyword arguments
+        # converted_kwargs = {}
+        # for key, value in kwargs.items():
+        #     if key in sig.parameters:
+        #         annotation = sig.parameters[key].annotation
+        #         if annotation != sig.parameters[key].empty:
+        #             try:
+        #                 converted_kwargs[key] = annotation(value)
+        #             except (ValueError, TypeError):
+        #                 converted_kwargs[key] = value
+        #         else:
+        #             converted_kwargs[key] = value        
+        
         # Dynamically import the module
         module = importlib.import_module(module_name)
         
