@@ -721,7 +721,7 @@ class TelegramBotFramework:
             logger.debug(arg_types)  # Output: [<class 'float'>, <class 'float'>]
             
             # values = ["2", "3"]  # List of string values
-            values = args[2:]
+            values = List(args[2:])
             converted_values = convert_values_to_types(arg_types, values)
             logger.debug(converted_values)  # Output: [2.0, 3.0]  
             
