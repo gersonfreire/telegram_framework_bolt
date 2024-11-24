@@ -319,6 +319,23 @@ def convert_parameters_to_correct_type(module_name: str, function_name: str, par
         raise RuntimeError(f"Error converting parameters for function '{function_name}': {e}")
 
 if __name__ == "__main__":
+        
+    # from src.bot.util_functions import call_and_convert_function
+
+    # Example string of arguments
+    args_string = "2, 3"
+
+    # Convert the string to a list of arguments
+    args_list = [arg.strip() for arg in args_string.split(",")]
+
+    # Convert the arguments to the appropriate types (e.g., int, float, etc.)
+    # In this example, we assume the arguments are integers
+    args_list = [int(arg) for arg in args_list]
+
+    # Call the function with the unpacked arguments
+    result = call_and_convert_function('math', 'pow', *args_list)
+
+    print(result)  # Output: 8.0    
 
     # Example usage:
     result = call_and_convert_function('math', 'pow', 2, 3)  # Returns 8.0
