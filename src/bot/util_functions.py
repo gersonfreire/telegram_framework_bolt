@@ -233,7 +233,10 @@ if __name__ == "__main__":
 
     # Example usage:
     result = call_and_convert_function('math', 'pow', 2, 3)  # Returns 8.0
-    greeting = call_and_convert_function('util_functions', 'hello_world', name="World")  # Returns "Hello, World!"    
+    logger.info(f"Result: {result}")
+    
+    greeting = call_and_convert_function('util_functions', 'hello_world', name="World")  # Returns "Hello, World!"  
+    logger.info(f"Greeting: {greeting}")  
 
     # Test the dynamic function import and conversion
     try:
