@@ -32,7 +32,7 @@ from telegram.constants import ParseMode
 
 from .handlers import CommandHandler
 from .settings import Settings
-from .util_functions import call_function
+from .util_functions import call_function, call_and_convert_function
 
 from pathlib import Path
 import os
@@ -716,7 +716,11 @@ class TelegramBotFramework:
             function_params = " ".join(args[2:])
             
             # Call the function using the call_function utility
-            result = call_function(module_name, function_name, function_params)
+            # result = call_function(module_name, function_name, function_params)
+            # convert function_params variable from string to tuple
+            function_params = tuple(json.loads(function_params))
+            
+            result = call_and_convert_function('math', 'pow', function_params) # 2, 3)  # Returns 8.0
             
             # Send the result back to the user
             # await update.message.reply_text(f"Result: {result}")
