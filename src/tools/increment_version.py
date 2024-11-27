@@ -24,18 +24,18 @@ def increment_version(version: str) -> str:
     return f"{major}.{minor}.{patch}"
 
 def update_version_in_files():
-    current_script_path = Path(__file__).parent
+    current_script_path = {Path(__file__).parent}
     files_to_update = [
         {
-            "path": Path(f"{current_script_path}{os.sep}core.py"),
+            "path": Path(f"{current_script_path}{os.sep}bot{os.sep}core.py"),
             "pattern": r'(__version__\s*=\s*["\'])([\d.]+)(["\'])'
         },
         {
-            "path": Path("{current_script_path}{os.sep}../../setup.py"),
-            "pattern": r'(__version__\s*=\s*["\'])([\d.]+)(["\'])'
+            "path": Path(f"{current_script_path}{os.sep}..{os.sep}setup.py"),
+            "pattern": r'(version\s*=\s*["\'])([\d.]+)(["\'])'
         },
         {
-            "path": Path("{current_script_path}{os.sep}../../pyproject.toml"),
+            "path": Path(f"{current_script_path}{os.sep}..{os.sep}pyproject.toml"),
             "pattern": r'(version\s*=\s*["\'])([\d.]+)(["\'])'
         }
     ]
