@@ -1,8 +1,14 @@
+#!/usr/bin/env python3
+
+"""
+Examples module for the TelegramBotFramework   
+"""
+
 import os
 import sys
 
 # Add the src directory to the Python path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+# sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from dotenv import load_dotenv
 
@@ -12,7 +18,8 @@ load_dotenv()
 import yaml
 from telegram import Update
 from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes
-from bot import TelegramBotFramework  # Import the TelegramBotFramework class
+
+from ..bot import TelegramBotFramework  # Import the TelegramBotFramework class
 
 async def handle_echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echoes the user message back to the user
