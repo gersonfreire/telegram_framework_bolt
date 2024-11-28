@@ -32,8 +32,9 @@ import subprocess
 # from tlgfwk import *
 from ..bot import TelegramBotFramework  # Import the TelegramBotFramework class
 import traceback
-import util.util_watch as watch
-from util.util_watch import check_port
+# import util.util_watch as watch
+import util_watch as watch
+from util_watch import check_port
 import paramiko
 
 class HostWatchBot(TelegramBotFramework):
