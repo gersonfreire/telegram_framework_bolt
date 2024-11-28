@@ -24,16 +24,19 @@ Pagination
 
 __todo__ = """ """
 
+from telegram import Update
+from telegram.ext import CallbackContext
 import __init__
 import subprocess
 
-from tlgfwk import *
+# from tlgfwk import *
+from ..bot import TelegramBotFramework  # Import the TelegramBotFramework class
 import traceback
 import util.util_watch as watch
 from util.util_watch import check_port
 import paramiko
 
-class HostWatchBot(TlgBotFwk):
+class HostWatchBot(TelegramBotFramework):
     
     async def escape_markdown(self, text: str) -> str:
         try:
