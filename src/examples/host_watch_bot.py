@@ -933,7 +933,7 @@ def main():
     bot = TelegramBotFramework()
 
     # Start the bot's main loop
-    bot.run(external_handlers=[handlerBot.ping_host_command, handlerBot.ping_interval, handlerBot.ping_host_port_command, handlerBot.change_ping_port_command, handlerBot.store_credentials, handlerBot.execute_command, handlerBot.execute_ssh_command, handlerBot.list_failures])
+    bot.run(external_handlers=[ping_host_command, handlerBot.ping_interval, handlerBot.ping_host_port_command, handlerBot.change_ping_port_command, handlerBot.store_credentials, handlerBot.execute_command, handlerBot.execute_ssh_command, handlerBot.list_failures])
     
 if __name__ == '__main__':
     main()
