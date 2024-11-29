@@ -44,6 +44,35 @@ from .util_watch import *
 
 import paramiko
 
+async def ping_host_command(update: Update, context: CallbackContext) -> None:
+    """Check if a host is up or down.
+
+    Args:
+        update (Update): _description_
+        context (CallbackContext): _description_
+    """
+    
+    try:
+        # Extract the host name from the command parameters
+        host_name = context.args[0] if context.args else None
+        
+        if not host_name:
+            await update.message.reply_text("Please provide a host name to ping.")
+            return
+        
+        # Ping the host
+        ping_result = await HostWatchBot().ping_host(host_name, show_success=True, user_id=update.effective_user.id)
+        
+        # Send the result back to the user
+        # if ping_result:
+        #     await update.message.reply_text(f"{host_name} is up!")
+        # else:
+        #     await update.message.reply_text(f"{host_name} is down!")
+    
+    except Exception as e:
+        await update.message.reply_text(f"An error occurred: {e}")
+        # self.logger.error(f"Error in ping_host_command: {e}")
+
 class HostWatchBot(TelegramBotFramework):
     
     async def escape_markdown(self, text: str) -> str:
@@ -56,7 +85,7 @@ class HostWatchBot(TelegramBotFramework):
             self.logger.error(f"Error escaping markdown: {e}")
         return text
     
-    async def ping_host_command(self, update: Update, context: CallbackContext) -> None:
+    async def ping_host_command(self, update: Update, context: CallbackContext) -> None
         """Check if a host is up or down.
 
         Args:
@@ -873,7 +902,7 @@ class HostWatchBot(TelegramBotFramework):
     def run(self):
         
         try:
-            self.app.add_handler(self=self.app, handler=CommandHandler("pingadd", self.ping_add), group=-1)
+            self.app.add_handler(handler=CommandHandler("pingadd", self.ping_add), group=-1)
             self.app.add_handler(handler=CommandHandler("pingdelete", self.ping_delete), group=-1)
             self.app.add_handler(handler=CommandHandler("pinglist", self.ping_list), group=-1)  
             self.app.add_handler(handler=CommandHandler("pinglog", self.ping_log), group=-1)
@@ -899,7 +928,7 @@ def main():
 
     # Create an instance of the bot
     handlerBot = HostWatchBot() 
-    handlerBot.run()
+    # handlerBot.run()
     
     bot = TelegramBotFramework()
 
