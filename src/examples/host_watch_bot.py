@@ -57,7 +57,7 @@ async def handle_echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     user_message = update.message.text
     await update.message.reply_text(user_message)
 
-async def ping_host_command(update: Update, context: CallbackContext) -> None:
+async def ping_host_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Check if a host is up or down.
 
     Args:
@@ -948,7 +948,7 @@ def main():
     # bot.app.add_handler(bot.app, handler=telegram.ext.CommandHandler("ping", ping_host_command), group=-1)
 
     # Start the bot's main loop
-    bot.run(external_handlers=[handle_echo])
+    bot.run(external_handlers=[ping_host_command])
     # bot.run()
     
 if __name__ == '__main__':
