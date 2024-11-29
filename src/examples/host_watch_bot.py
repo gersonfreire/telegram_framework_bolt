@@ -222,10 +222,10 @@ class HostWatchBot(TelegramBotFramework):
     def __init__(self, token=None, *args, **kwargs):
 
         # Load the bot token from the .env file
-        dotenv_path = os.path.join(os.path.dirname(__file__), 'my.env')     
-    
-        # TODO: hotfix remove addjob and deletejob from the list of commands    
-        super().__init__(env_file=dotenv_path, token=token, disable_commands_list=['paypal', 'payment','p','showbalance','addjob', 'deletejob', 'listjobs','listalljobs','togglesuccess']) 
+        dotenv_path = os.path.join(os.path.dirname(__file__), '.env')     
+       
+        # super().__init__(env_file=dotenv_path, token=token, disable_commands_list=['paypal', 'payment','p','showbalance','addjob', 'deletejob', 'listjobs','listalljobs','togglesuccess']) 
+        super().__init__() 
         
         self.jobs = {}
         
