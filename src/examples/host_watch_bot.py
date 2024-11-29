@@ -24,11 +24,15 @@ Pagination
 
 __todo__ = """ """
 
+import datetime
 import os
+from sys import platform
 from telegram import Update
 from telegram.ext import CallbackContext
 # import hostwatch.__init__
 import subprocess
+
+from telegram.ext import CommandHandler
 
 # from tlgfwk import *
 from ..bot import TelegramBotFramework  # Import the TelegramBotFramework class
@@ -48,7 +52,7 @@ class HostWatchBot(TelegramBotFramework):
             # text = re.sub(r'([_*\[\]()~`>#+\-=|{}.!])', r'\\\1', text)  
             text = re.sub(r'([_*\[\]()~`#+\-=|{}.!])', r'\\\1', text)  
         except Exception as e:
-            logger.error(f"Error escaping markdown: {e}")
+            self.logger.error(f"Error escaping markdown: {e}")
         return text
     
     async def ping_host_command(self, update: Update, context: CallbackContext) -> None:
@@ -78,7 +82,7 @@ class HostWatchBot(TelegramBotFramework):
         
         except Exception as e:
             await update.message.reply_text(f"An error occurred: {e}")
-            logger.error(f"Error in ping_host_command: {e}")
+            self.logger.error(f"Error in ping_host_command: {e}")
     
     async def ping_host_port_command(self, update: Update, context: CallbackContext) -> None:
         """Ping a host by name or IP address and TCP port number.
@@ -110,7 +114,7 @@ class HostWatchBot(TelegramBotFramework):
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            logger.error(f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}")
+            self.logger.error(f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}")
 
     async def ping_interval(self, update: Update, context: CallbackContext) -> None:
         """Change the interval to check a monitored host.
@@ -132,7 +136,7 @@ class HostWatchBot(TelegramBotFramework):
             
             job_name = f"ping_{host_name}"
             
-            user_data = await self.application.persistence.get_user_data() if self.application.persistence else {}
+            user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
             user_hosts = user_data[update.effective_user.id] if update.effective_user.id in user_data else {}
             
             # Check if the job exists
@@ -145,13 +149,13 @@ class HostWatchBot(TelegramBotFramework):
             ping_parameters = user_hosts[job_name] if job_name in user_hosts else {}
             
             # get job from job queue
-            host_job = self.application.job_queue.get_jobs_by_name(job_name)[0]
+            host_job = self.app.job_queue.get_jobs_by_name(job_name)[0]
             
             # Remove the existing job
             host_job.schedule_removal()
             
             # Add a new job with the updated interval
-            new_job = self.application.job_queue.run_repeating(
+            new_job = self.app.job_queue.run_repeating(
                 self.job_event_handler, interval=new_interval, first=0, name=job_name, data=host_name,
                                         user_id=user_id, chat_id=user_id
             )
@@ -163,26 +167,26 @@ class HostWatchBot(TelegramBotFramework):
         
         except Exception as e:
             await update.message.reply_text(f"An error occurred: {e}")
-            logger.error(f"Error in change_ping_interval: {e}")
+            self.logger.error(f"Error in change_ping_interval: {e}")
      
     async def load_all_user_data(self):
         try:
-            logger.info("Restoring jobs...")
-            await self.application.bot.send_message(self.bot_owner, "_Restoring jobs..._") if self.bot_owner else None            
+            self.logger.info("Restoring jobs...")
+            await self.app.bot.send_message(self.bot_owner, "_Restoring jobs..._") if self.bot_owner else None            
       
             # Get all persisted jobs already added by all users
-            user_data = await self.application.persistence.get_user_data() if self.application.persistence else {}
+            user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
             
             if not user_data or len(user_data) == 0:
-                logger.info("No jobs found.")
-                await self.application.bot.send_message(self.bot_owner, "_No jobs found to restore._") if self.bot_owner else None
+                self.logger.info("No jobs found.")
+                await self.app.bot.send_message(self.bot_owner, "_No jobs found to restore._") if self.bot_owner else None
                 return     
             
             for user_id, jobs_dic in user_data.items():
                 try:
                     log_message = f"_Restoring jobs for user_ `{user_id}`..."
-                    logger.debug(log_message)
-                    await self.application.bot.send_message(self.bot_owner, log_message) if user_id else None
+                    self.logger.debug(log_message)
+                    await self.app.bot.send_message(self.bot_owner, log_message) if user_id else None
                     
                     # for each job item in user´s jobs dictionary, add a job to the job queue
                     for job_name, job_params in jobs_dic.items():
@@ -191,13 +195,13 @@ class HostWatchBot(TelegramBotFramework):
                             
                             if job_name and job_name.startswith('ping_'):
                                 
-                                logger.debug(f"Adding job {job_name} for user {user_id}...")
-                                await self.application.bot.send_message(self.bot_owner, f"_Adding job_ `{job_name}` _for user_ `{user_id}`...") if user_id else None
+                                self.logger.debug(f"Adding job {job_name} for user {user_id}...")
+                                await self.app.bot.send_message(self.bot_owner, f"_Adding job_ `{job_name}` _for user_ `{user_id}`...") if user_id else None
                                 
                                 ip_address = job_params['ip_address']
                                 interval = job_params['interval']
                                 
-                                new_job = self.application.job_queue.run_repeating(
+                                new_job = self.app.job_queue.run_repeating(
                                         self.job_event_handler, interval=interval, first=0, name=job_name, data=ip_address,
                                         user_id=user_id, chat_id=user_id
                                     )
@@ -208,15 +212,15 @@ class HostWatchBot(TelegramBotFramework):
                                 self.jobs[user_id][job_name] = new_job if user_id in self.jobs else {job_name: new_job}                                
                                 
                         except Exception as e:
-                            logger.error(f"Failed to add job {job_name} for user {user_id}: {e}")
+                            self.logger.error(f"Failed to add job {job_name} for user {user_id}: {e}")
                             self.send_message_by_api(self.bot_owner, f"Failed to add job {job_name} for user {user_id}: {e}")
                         
                 except Exception as e:
-                    logger.error(f"Failed to restore job {user_id}: {e}")
+                    self.logger.error(f"Failed to restore job {user_id}: {e}")
                     self.send_message_by_api(self.bot_owner, f"Failed to restore job {user_id}: {e}") 
             
         except Exception as e:
-            logger.error(f"Failed to restore jobs: {e}")
+            self.logger.error(f"Failed to restore jobs: {e}")
             self.send_message_by_api(self.bot_owner, f"Failed to restore jobs: {e}")           
     
     def __init__(self, token=None, *args, **kwargs):
@@ -272,7 +276,7 @@ class HostWatchBot(TelegramBotFramework):
                 self.send_message_by_api(callback_context.job.user_id, f"{host_address}:{port} is down!")
             
             # Log the result of the ping
-            logger.debug(f"Ping result for {host_address}: {ping_result} {https_ping_result} {port_result}")
+            self.logger.debug(f"Ping result for {host_address}: {ping_result} {https_ping_result} {port_result}")
             
         except Exception as e:
             self.send_message_by_api(self.bot_owner, f"An error occurred: {e}") 
@@ -291,8 +295,8 @@ class HostWatchBot(TelegramBotFramework):
                     response = await client.get(url)
                 # except httpx.RequestError as exc:
                 except Exception as e:
-                    # logger.error(f"An error occurred while requesting {exc.request.url!r}.")
-                    logger.error(f"An error occurred while requesting {url}{os.linesep}{e}")
+                    # self.logger.error(f"An error occurred while requesting {exc.request.url!r}.")
+                    self.logger.error(f"An error occurred while requesting {url}{os.linesep}{e}")
                 
                 if response and (response.status_code == 200 or response.status_code == 302 or response.status_code == 301): 
                     # 302 is a redirect nd 301 is a permanent redirect
@@ -301,10 +305,10 @@ class HostWatchBot(TelegramBotFramework):
                 else:
                     self.send_message_by_api(user_id, f"{url} is not reachable!") if debug_status else None
                 
-                logger.debug(f"HTTP ping result for {url}: {http_result}")
+                self.logger.debug(f"HTTP ping result for {url}: {http_result}")
                 
                 # Add last status to ping list in user data
-                user_data = await self.application.persistence.get_user_data() if self.application.persistence else {}
+                user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
                 job_name = f"ping_{ip_address}"
                 
                 if http_type=='http':
@@ -312,20 +316,20 @@ class HostWatchBot(TelegramBotFramework):
                 else:
                     user_data[user_id][job_name]['https_status'] = http_result
                     
-                await self.application.persistence.update_user_data(user_id, user_data[user_id]) if self.application.persistence else None
+                await self.app.persistence.update_user_data(user_id, user_data[user_id]) if self.app.persistence else None
                 
                 # Force a flush of persistence to save the last status
-                await self.application.persistence.flush() if self.application.persistence else None
+                await self.app.persistence.flush() if self.app.persistence else None
                 
-                user_data = await self.application.persistence.get_user_data() if self.application.persistence else {}
+                user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
                 
         except Exception as e:
             tb = traceback.format_exc()
             script_name = __file__
             # line_number = tb.splitlines()[-3].split(",")[1].strip().split(" ")[1]
             # error_location = f"Error in {script_name} at line {line_number}"
-            # logger.error(error_location)
-            logger.error(str(tb))
+            # self.logger.error(error_location)
+            self.logger.error(str(tb))
             # self.send_message_by_api(self.bot_owner, f"An error occurred while checking {ip_address}: {e}")
             # self.send_message_by_api(self.bot_owner, error_location)
         
@@ -348,17 +352,17 @@ class HostWatchBot(TelegramBotFramework):
                 
                 # Set the last_fail_date to the current date and time
                 current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                user_data = await self.application.persistence.get_user_data() if self.application.persistence else {}
+                user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
                 job_name = f"ping_{ip_address}"
                 if user_id in user_data and job_name in user_data[user_id]:
                     user_data[user_id][job_name]['last_fail_date'] = current_time
-                    await self.application.persistence.update_user_data(user_id, user_data[user_id])
-                    await self.application.persistence.flush()
+                    await self.app.persistence.update_user_data(user_id, user_data[user_id])
+                    await self.app.persistence.flush()
                 
-            logger.debug(f"Ping result for {ip_address}: {ping_result}")
+            self.self.logger.debug(f"Ping result for {ip_address}: {ping_result}")
                 
             # Add last status to ping list in user data
-            user_data = await self.application.persistence.get_user_data() if self.application.persistence else {}
+            user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
             job_name = f"ping_{ip_address}"
             
             user_data[user_id][job_name]['last_status'] = ping_result
@@ -366,12 +370,12 @@ class HostWatchBot(TelegramBotFramework):
             if not ping_result:
                 user_data[user_id][job_name]['last_fail_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-            await self.application.persistence.update_user_data(user_id, user_data[user_id]) if self.application.persistence else None
+            await self.app.persistence.update_user_data(user_id, user_data[user_id]) if self.app.persistence else None
             
             # force a flush of persistence to save the last status
-            await self.application.persistence.flush() if self.application.persistence else None
+            await self.app.persistence.flush() if self.app.persistence else None
             
-            user_data = await self.application.persistence.get_user_data() if self.application.persistence else {}
+            user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
                 
         except Exception as e:
             self.send_message_by_api(self.bot_owner, f"An error occurred while pinging {ip_address}: {e}")
@@ -414,12 +418,12 @@ class HostWatchBot(TelegramBotFramework):
                 return
             
             # Add the new job to the user's job dictionary. If the user already has jobs, add the new job to their existing job dictionary.        
-            new_job = self.application.job_queue.run_repeating(
+            new_job = self.app.job_queue.run_repeating(
                 self.job_event_handler, interval=interval, first=0, name=job_name, data=ip_address,
                 user_id=user_id, chat_id=user_id
             )
             
-            logger.debug(f"Adding job {job_name} for user {user_id}...")
+            self.self.logger.debug(f"Adding job {job_name} for user {user_id}...")
             
             # If the user does not have any jobs yet, create a new dictionary for the user with the new job. 
             self.jobs[user_id] = self.jobs[user_id] if user_id in self.jobs else {user_id: {}}
@@ -438,17 +442,17 @@ class HostWatchBot(TelegramBotFramework):
             }
             
             # force persistence update of the user data
-            await self.application.persistence.update_user_data(update.effective_user.id, context.user_data) if self.application.persistence else None              
+            await self.app.persistence.update_user_data(update.effective_user.id, context.user_data) if self.app.persistence else None              
             
             # Ensure persistence is flushed to save the new job
-            await self.application.persistence.flush() if self.application.persistence else None
+            await self.app.persistence.flush() if self.app.persistence else None
             
             await update.message.reply_text(f"Hosted {ip_address} added with interval {interval} seconds.", parse_mode=None)
             
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename())[1]
-            logger.error(f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}")
+            self.self.logger.error(f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}")
             
             await update.message.reply_text(f"An error occurred: {e}", parse_mode=None)
 
@@ -480,16 +484,16 @@ class HostWatchBot(TelegramBotFramework):
             #     return
             
             try:
-                job = self.application.job_queue.get_jobs_by_name(job_name)[0]
+                job = self.app.job_queue.get_jobs_by_name(job_name)[0]
                 job.schedule_removal()
             except Exception as e:
-                logger.error(f"No job found with name {job_name}")            
+                self.self.logger.error(f"No job found with name {job_name}")            
             
             try:
                 # remove this key from user data
                 context.user_data.pop(job_name) if job_name in context.user_data else None
             except Exception as e:
-                logger.error(f"Failed to remove job {job_name} from user data: {e}")
+                self.self.logger.error(f"Failed to remove job {job_name} from user data: {e}")
             
             await update.message.reply_text(f"Host {ip_address} deleted.", parse_mode=None)
         
@@ -519,7 +523,7 @@ class HostWatchBot(TelegramBotFramework):
                 # message = f"_Active monitored host:_{os.linesep}`pi hs ht p     user-id   interv next last host`{os.linesep}"
                 message = f"_Active monitored host:_{os.linesep}`pi p     user-id   interv next last host`{os.linesep}"
                 
-            all_user_data = await self.application.persistence.get_user_data() if self.application.persistence else {}
+            all_user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
             
             has_jobs = False
             
@@ -549,10 +553,10 @@ class HostWatchBot(TelegramBotFramework):
                             
                             next_time = ""
                             try:
-                                job = self.application.job_queue.get_jobs_by_name(job_name)[0]                        
+                                job = self.app.job_queue.get_jobs_by_name(job_name)[0]                        
                                 next_time = (job.next_t - datetime.timedelta(hours=3)).strftime("%H:%M") if job.next_t else ""
                             except IndexError:
-                                logger.error(f"No job found with name {job_name}")
+                                self.self.logger.error(f"No job found with name {job_name}")
                             
                             interval = user_data[job_name]['interval'] if job_name in user_data else None
                             ip_address = user_data[job_name]['ip_address'] if job_name in user_data else None
@@ -582,17 +586,17 @@ class HostWatchBot(TelegramBotFramework):
                             
                         except Exception as e:
                             tb = traceback.format_exc()
-                            logger.error(f"An error occurred while listing job {job_name} for user {job_owner_id}: {e}{os.linesep}{tb}")
+                            self.self.logger.error(f"An error occurred while listing job {job_name} for user {job_owner_id}: {e}{os.linesep}{tb}")
                             
                 except Exception as e:
-                    logger.error(f"An error occurred while processing user data for user {job_owner_id}: {e}")
+                    self.self.logger.error(f"An error occurred while processing user data for user {job_owner_id}: {e}")
                      
             if not has_jobs:
                 message = f"_No hosts monitored._{os.linesep}{os.linesep}_Usage: /pinglist <ip_address> <interval-in-seconds>_{os.linesep}_Example: `/pinglist`"
-                logger.info(message)  
+                self.self.logger.info(message)  
             
             else:
-                logger.info(message)
+                self.logger.info(message)
                 message += f"{os.linesep}_Total of monitored hosts: {len(jobs)}_"        
                             
             await update.message.reply_text(text=message) 
@@ -607,7 +611,7 @@ class HostWatchBot(TelegramBotFramework):
             show_success = not bool(context.user_data["show_success"]) if "show_success" in context.user_data else False
             
             # Update the show_success flag in the user data
-            await self.application.persistence.update_user_data(update.effective_user.id, {"show_success": show_success}) if self.application.persistence else None
+            await self.app.persistence.update_user_data(update.effective_user.id, {"show_success": show_success}) if self.app.persistence else None
             context.user_data["show_success"] = show_success
             
             status = "enabled" if show_success else "disabled"
@@ -636,7 +640,7 @@ class HostWatchBot(TelegramBotFramework):
             
             job_name = f"ping_{host_name}"
             
-            user_data = await self.application.persistence.get_user_data() if self.application.persistence else {}
+            user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
             user_hosts = user_data[update.effective_user.id] if update.effective_user.id in user_data else {}
             
             # Check if the job exists
@@ -647,15 +651,15 @@ class HostWatchBot(TelegramBotFramework):
             # Update the port in the user data
             user_hosts[job_name]['port'] = new_port_number
             context.user_data[job_name]['port'] = new_port_number
-            await self.application.persistence.update_user_data(user_id, user_hosts)
-            await self.application.persistence.flush()
+            await self.app.persistence.update_user_data(user_id, user_hosts)
+            await self.app.persistence.flush()
             
             await update.message.reply_text(f"Port for {host_name} changed to {new_port_number}.")
         
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            logger.error(f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}")
+            self.logger.error(f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}")
             
             await update.message.reply_text(f"An error occurred: {e}", parse_mode=None)
 
@@ -676,7 +680,7 @@ class HostWatchBot(TelegramBotFramework):
                     
                     job_name = f"ping_{host_name}"
                     
-                    user_data = await self.application.persistence.get_user_data() if self.application.persistence else {}
+                    user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
                     user_hosts = user_data[update.effective_user.id] if update.effective_user.id in user_data else {}
                     
                     # Check if the job exists
@@ -702,7 +706,7 @@ class HostWatchBot(TelegramBotFramework):
             
             job_name = f"ping_{host_name}"
             
-            user_data = await self.application.persistence.get_user_data() if self.application.persistence else {}
+            user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
             user_hosts = user_data[update.effective_user.id] if update.effective_user.id in user_data else {}
             
             # Check if the job exists
@@ -718,15 +722,15 @@ class HostWatchBot(TelegramBotFramework):
             context.user_data[job_name]['password'] = password
             context.user_data[job_name]['connection_port'] = connection_port
             
-            await self.application.persistence.update_user_data(user_id, user_hosts)
-            await self.application.persistence.flush()
+            await self.app.persistence.update_user_data(user_id, user_hosts)
+            await self.app.persistence.flush()
             
             await update.message.reply_text(f"Credentials for {host_name} stored successfully.")
         
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb.frame.f_code.co.filename())[1]
-            logger.error(f"Error storing credentials in {fname} at line {exc_tb.tb_lineno}: {e}")
+            self.logger.error(f"Error storing credentials in {fname} at line {exc_tb.tb_lineno}: {e}")
             
             await update.message.reply_text(f"An error occurred: {e}", parse_mode=None)
 
@@ -758,7 +762,7 @@ class HostWatchBot(TelegramBotFramework):
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb.frame.f_code.co.filename())[1]
-            logger.error(f"Error storing credentials in {fname} at line {exc_tb.tb_lineno}: {e}")
+            self.logger.error(f"Error storing credentials in {fname} at line {exc_tb.tb_lineno}: {e}")
             
             await update.message.reply_text(f"An error occurred: {e}", parse_mode=None)
 
@@ -782,7 +786,7 @@ class HostWatchBot(TelegramBotFramework):
             
             job_name = f"ping_{host_name}"
             
-            user_data = await self.application.persistence.get_user_data() if self.application.persistence else {}
+            user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
             user_hosts = user_data[update.effective_user.id] if update.effective_user.id in user_data else {}
             
             # Check if the job exists
@@ -814,7 +818,7 @@ class HostWatchBot(TelegramBotFramework):
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb.frame.f_code.co.filename())[1]
-            logger.error(f"Error executing SSH command in {fname} at line {exc_tb.tb_lineno}: {e}")
+            self.logger.error(f"Error executing SSH command in {fname} at line {exc_tb.tb_lineno}: {e}")
             
             await update.message.reply_text(f"An error occurred: {e}", parse_mode=None)
  
@@ -828,7 +832,7 @@ class HostWatchBot(TelegramBotFramework):
         
         try:
             user_id = update.effective_user.id
-            user_data = await self.application.persistence.get_user_data() if self.application.persistence else {}
+            user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
             user_hosts = user_data[user_id] if user_id in user_data else {}
 
             if not user_hosts:
@@ -856,32 +860,32 @@ class HostWatchBot(TelegramBotFramework):
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                    logger.error(f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}")                    
+                    self.logger.error(f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}")                    
                     continue
             
             await update.message.reply_text(message)
         
         except Exception as e:
             await update.message.reply_text(f"An error occurred: {e}")
-            logger.error(f"Error in list_failures: {e}")
+            self.logger.error(f"Error in list_failures: {e}")
 
     def run(self):
         
         try:
-            self.application.add_handler(CommandHandler("pingadd", self.ping_add), group=-1)
-            self.application.add_handler(CommandHandler("pingdelete", self.ping_delete), group=-1)
-            self.application.add_handler(CommandHandler("pinglist", self.ping_list), group=-1)  
-            self.application.add_handler(CommandHandler("pinglog", self.ping_log), group=-1)
-            self.application.add_handler(CommandHandler("pinghost", self.ping_host_command), group=-1)
-            self.application.add_handler(CommandHandler("pinginterval", self.ping_interval), group=-1)
-            self.application.add_handler(CommandHandler("pinghostport", self.ping_host_port_command), group=-1)  # Register the new command handler
-            self.application.add_handler(CommandHandler("changepingport", self.change_ping_port_command), group=-1)  # Register the new command handler
-            self.application.add_handler(CommandHandler("storecredentials", self.store_credentials), group=-1)  # Register the new command handler
-            self.application.add_handler(CommandHandler("exec", self.execute_command, filters=filters.User(user_id=self.admins_owner)), group=-1)  # Register the new command handler
-            self.application.add_handler(CommandHandler("ssh", self.execute_ssh_command, filters=filters.User(user_id=self.admins_owner)), group=-1)  # Register the new command handler
-            self.application.add_handler(CommandHandler("listfailures", self.list_failures), group=-1)  # Register the new command handler
+            self.app.add_handler(CommandHandler("pingadd", self.ping_add), group=-1)
+            self.app.add_handler(CommandHandler("pingdelete", self.ping_delete), group=-1)
+            self.app.add_handler(CommandHandler("pinglist", self.ping_list), group=-1)  
+            self.app.add_handler(CommandHandler("pinglog", self.ping_log), group=-1)
+            self.app.add_handler(CommandHandler("pinghost", self.ping_host_command), group=-1)
+            self.app.add_handler(CommandHandler("pinginterval", self.ping_interval), group=-1)
+            self.app.add_handler(CommandHandler("pinghostport", self.ping_host_port_command), group=-1)  # Register the new command handler
+            self.app.add_handler(CommandHandler("changepingport", self.change_ping_port_command), group=-1)  # Register the new command handler
+            self.app.add_handler(CommandHandler("storecredentials", self.store_credentials), group=-1)  # Register the new command handler
+            self.app.add_handler(CommandHandler("exec", self.execute_command, filters=filters.User(user_id=self.admins_owner)), group=-1)  # Register the new command handler
+            self.app.add_handler(CommandHandler("ssh", self.execute_ssh_command, filters=filters.User(user_id=self.admins_owner)), group=-1)  # Register the new command handler
+            self.app.add_handler(CommandHandler("listfailures", self.list_failures), group=-1)  # Register the new command handler
             
-            super().run()
+            # super().run()
             
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -893,7 +897,9 @@ class HostWatchBot(TelegramBotFramework):
 def main():
 
     # Create an instance of the bot
-    # bot = HostWatchBot() 
+    handlerBot = HostWatchBot() 
+    handlerBot.run()
+    
     bot = TelegramBotFramework()
 
     # Start the bot's main loop
