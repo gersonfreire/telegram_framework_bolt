@@ -26,7 +26,7 @@ __todo__ = """ """
 
 from telegram import Update
 from telegram.ext import CallbackContext
-import hostwatch.__init__
+# import hostwatch.__init__
 import subprocess
 
 # from tlgfwk import *
