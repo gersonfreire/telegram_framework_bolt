@@ -33,7 +33,8 @@ from telegram.ext import CallbackContext
 # import hostwatch.__init__
 import subprocess
 
-from telegram.ext import CommandHandler
+from telegram import Update
+from telegram.ext import Application, CommandHandler as TelegramCommandHandler, ContextTypes
 
 # from tlgfwk import *
 from ..bot import TelegramBotFramework  # Import the TelegramBotFramework class
@@ -927,13 +928,13 @@ class HostWatchBot(TelegramBotFramework):
 def main():
 
     # Create an instance of the bot
-    handlerBot = HostWatchBot() 
+    # handlerBot = HostWatchBot() 
     # handlerBot.run()
     
     bot = TelegramBotFramework()
 
     # Start the bot's main loop
-    bot.run(external_handlers=[ping_host_command, handlerBot.ping_interval, handlerBot.ping_host_port_command, handlerBot.change_ping_port_command, handlerBot.store_credentials, handlerBot.execute_command, handlerBot.execute_ssh_command, handlerBot.list_failures])
+    bot.run(external_handlers=[ping_host_command])
     
 if __name__ == '__main__':
     main()
