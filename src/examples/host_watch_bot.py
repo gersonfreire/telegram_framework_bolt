@@ -29,6 +29,7 @@ import os
 from sys import platform
 from warnings import filters
 from telegram import Update
+import telegram
 from telegram.ext import CallbackContext
 # import hostwatch.__init__
 import subprocess
@@ -44,6 +45,17 @@ import traceback
 from .util_watch import *  
 
 import paramiko
+
+async def handle_echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Echoes the user message back to the user
+
+    Args:
+        update (Update): The update object
+        context (ContextTypes.DEFAULT_TYPE): The context object
+    """
+    
+    user_message = update.message.text
+    await update.message.reply_text(user_message)
 
 async def ping_host_command(update: Update, context: CallbackContext) -> None:
     """Check if a host is up or down.
@@ -933,11 +945,11 @@ def main():
     
     bot = TelegramBotFramework()
     
-    bot.app.add_handler(handler=CommandHandler("ping", ping_host_command), group=-1)
+    # bot.app.add_handler(bot.app, handler=telegram.ext.CommandHandler("ping", ping_host_command), group=-1)
 
     # Start the bot's main loop
-    # bot.run(external_handlers=[ping_host_command])
-    bot.run()
+    bot.run(external_handlers=[handle_echo])
+    # bot.run()
     
 if __name__ == '__main__':
     main()
