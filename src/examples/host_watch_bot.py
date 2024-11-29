@@ -27,6 +27,7 @@ __todo__ = """ """
 import datetime
 import os
 from sys import platform
+from warnings import filters
 from telegram import Update
 from telegram.ext import CallbackContext
 # import hostwatch.__init__
@@ -872,7 +873,7 @@ class HostWatchBot(TelegramBotFramework):
     def run(self):
         
         try:
-            self.app.add_handler(handler=CommandHandler("pingadd", self.ping_add), group=-1)
+            self.app.add_handler(self=self.app, handler=CommandHandler("pingadd", self.ping_add), group=-1)
             self.app.add_handler(handler=CommandHandler("pingdelete", self.ping_delete), group=-1)
             self.app.add_handler(handler=CommandHandler("pinglist", self.ping_list), group=-1)  
             self.app.add_handler(handler=CommandHandler("pinglog", self.ping_log), group=-1)
@@ -892,7 +893,7 @@ class HostWatchBot(TelegramBotFramework):
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             lineno = exc_tb.tb_lineno
             self.logger.error(f"An error occurred in {fname} at line {lineno}: {e}")
-            self.send_message_by_api(self.bot_owner, f"An error occurred in {fname} at line {lineno}: {e}")
+            # self.send_message_by_api(self.bot_owner, f"An error occurred in {fname} at line {lineno}: {e}")
 
 def main():
 
@@ -903,7 +904,7 @@ def main():
     bot = TelegramBotFramework()
 
     # Start the bot's main loop
-    bot.run()
+    bot.run(external_handlers=[handlerBot.ping_host_command, handlerBot.ping_interval, handlerBot.ping_host_port_command, handlerBot.change_ping_port_command, handlerBot.store_credentials, handlerBot.execute_command, handlerBot.execute_ssh_command, handlerBot.list_failures])
     
 if __name__ == '__main__':
     main()
