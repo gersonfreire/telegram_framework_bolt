@@ -85,7 +85,7 @@ class HostWatchBot(TelegramBotFramework):
             self.logger.error(f"Error escaping markdown: {e}")
         return text
     
-    async def ping_host_command(self, update: Update, context: CallbackContext) -> None
+    async def ping_host_command(self, update: Update, context: CallbackContext) -> None:
         """Check if a host is up or down.
 
         Args:
