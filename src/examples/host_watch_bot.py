@@ -24,6 +24,7 @@ Pagination
 
 __todo__ = """ """
 
+import os
 from telegram import Update
 from telegram.ext import CallbackContext
 # import hostwatch.__init__
