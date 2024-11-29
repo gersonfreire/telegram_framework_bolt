@@ -872,18 +872,18 @@ class HostWatchBot(TelegramBotFramework):
     def run(self):
         
         try:
-            self.app.add_handler(CommandHandler("pingadd", self.ping_add), group=-1)
-            self.app.add_handler(CommandHandler("pingdelete", self.ping_delete), group=-1)
-            self.app.add_handler(CommandHandler("pinglist", self.ping_list), group=-1)  
-            self.app.add_handler(CommandHandler("pinglog", self.ping_log), group=-1)
-            self.app.add_handler(CommandHandler("pinghost", self.ping_host_command), group=-1)
-            self.app.add_handler(CommandHandler("pinginterval", self.ping_interval), group=-1)
-            self.app.add_handler(CommandHandler("pinghostport", self.ping_host_port_command), group=-1)  # Register the new command handler
-            self.app.add_handler(CommandHandler("changepingport", self.change_ping_port_command), group=-1)  # Register the new command handler
-            self.app.add_handler(CommandHandler("storecredentials", self.store_credentials), group=-1)  # Register the new command handler
-            self.app.add_handler(CommandHandler("exec", self.execute_command, filters=filters.User(user_id=self.admins_owner)), group=-1)  # Register the new command handler
-            self.app.add_handler(CommandHandler("ssh", self.execute_ssh_command, filters=filters.User(user_id=self.admins_owner)), group=-1)  # Register the new command handler
-            self.app.add_handler(CommandHandler("listfailures", self.list_failures), group=-1)  # Register the new command handler
+            self.app.add_handler(handler=CommandHandler("pingadd", self.ping_add), group=-1)
+            self.app.add_handler(handler=CommandHandler("pingdelete", self.ping_delete), group=-1)
+            self.app.add_handler(handler=CommandHandler("pinglist", self.ping_list), group=-1)  
+            self.app.add_handler(handler=CommandHandler("pinglog", self.ping_log), group=-1)
+            self.app.add_handler(handler=CommandHandler("pinghost", self.ping_host_command), group=-1)
+            self.app.add_handler(handler=CommandHandler("pinginterval", self.ping_interval), group=-1)
+            self.app.add_handler(handler=CommandHandler("pinghostport", self.ping_host_port_command), group=-1)  # Register the new command handler
+            self.app.add_handler(handler=CommandHandler("changepingport", self.change_ping_port_command), group=-1)  # Register the new command handler
+            self.app.add_handler(handler=CommandHandler("storecredentials", self.store_credentials), group=-1)  # Register the new command handler
+            self.app.add_handler(handler=CommandHandler("exec", self.execute_command, filters=filters.User(user_id=self.admins_owner)), group=-1)  # Register the new command handler
+            self.app.add_handler(handler=CommandHandler("ssh", self.execute_ssh_command, filters=filters.User(user_id=self.admins_owner)), group=-1)  # Register the new command handler
+            self.app.add_handler(handler=CommandHandler("listfailures", self.list_failures), group=-1)  # Register the new command handler
             
             # super().run()
             
