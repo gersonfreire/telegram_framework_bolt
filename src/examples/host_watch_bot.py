@@ -32,9 +32,10 @@ import subprocess
 # from tlgfwk import *
 from ..bot import TelegramBotFramework  # Import the TelegramBotFramework class
 import traceback
-# import util.util_watch as watch
-import util_watch as watch
-from util_watch import check_port
+
+# import util_watch as watch
+from .util_watch import *  
+
 import paramiko
 
 class HostWatchBot(TelegramBotFramework):
@@ -96,7 +97,8 @@ class HostWatchBot(TelegramBotFramework):
             port_number = int(context.args[1])
             
             # Ping the host and port
-            is_open = await watch.check_port(host_name, port_number)
+            # is_open = await watch.check_port(host_name, port_number)
+            is_open = await check_port(host_name, port_number)
             
             # Send the result back to the user
             if is_open:
@@ -258,7 +260,8 @@ class HostWatchBot(TelegramBotFramework):
             
             # TODO: execute a check for a specific port
             port = callback_context.user_data[job_name]['port'] if 'port' in callback_context.user_data[job_name] else 80
-            port_result = await watch.check_port(host_address, port)
+            # port_result = await watch.check_port(host_address, port)
+            port_result = await check_port(host_address, port)
             
             callback_context.user_data[job_name]['port_status'] = port_result
             if not port_result:
