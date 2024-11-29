@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.58 chore: Update version to 0.4.55 and refactor version string"
+__version__ = "0.4.58 self.application"
 
 """TODO's:
 full command line on show version and post init only for admins
@@ -244,13 +244,15 @@ class TelegramBotFramework:
             raise ValueError("DEFAULT_BOT_TOKEN not found in environment variables")
         
         self.token = token if token else env_token
-        self.admin_users = list(map(int, dotenv.get_key(dotenv.find_dotenv(), "ADMIN_ID_LIST").split(','))) or admin_users
+        # admin_id_list = dotenv.get_key(dotenv.find_dotenv(), "ADMIN_ID_LIST")
+        admin_id_list = os.getenv("ADMIN_ID_LIST", "")
+        self.admin_users = list(map(int, admin_id_list.split(','))) or admin_users
         
         self.config_path = config_filename
         self.settings = Settings()
         self.commands: Dict[str, CommandHandler] = {}
         
-        self.app: Optional[Application] = None
+        self.app: Optional[Application] = Application # None
         self.registered_handlers = {}
         
         self._load_config()
@@ -1017,7 +1019,7 @@ class TelegramBotFramework:
         except Exception as e:
             self.logger.error(f"Error during post-shutdown: {e}")
             
-    def run(self, external_handlers: list) -> None:
+    def run(self, external_handlers: list = []) -> None:
         app = Application.builder().token(self.token).build()
 
         async def get_bot_username():

@@ -227,6 +227,8 @@ class HostWatchBot(TelegramBotFramework):
         # super().__init__(env_file=dotenv_path, token=token, disable_commands_list=['paypal', 'payment','p','showbalance','addjob', 'deletejob', 'listjobs','listalljobs','togglesuccess']) 
         super().__init__() 
         
+        self.app = self.app
+        
         self.jobs = {}
         
         self.external_post_init = self.load_all_user_data
@@ -882,13 +884,17 @@ class HostWatchBot(TelegramBotFramework):
             super().run()
             
         except Exception as e:
-            logger.error(f"An error occurred while adding handlers or running the bot: {e}")
-            self.send_message_by_api(self.bot_owner, f"An error occurred while adding handlers or running the bot: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            lineno = exc_tb.tb_lineno
+            self.logger.error(f"An error occurred in {fname} at line {lineno}: {e}")
+            self.send_message_by_api(self.bot_owner, f"An error occurred in {fname} at line {lineno}: {e}")
 
 def main():
 
     # Create an instance of the bot
-    bot = HostWatchBot() 
+    # bot = HostWatchBot() 
+    bot = TelegramBotFramework()
 
     # Start the bot's main loop
     bot.run()
