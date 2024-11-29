@@ -932,9 +932,12 @@ def main():
     # handlerBot.run()
     
     bot = TelegramBotFramework()
+    
+    bot.app.add_handler(handler=CommandHandler("ping", ping_host_command), group=-1)
 
     # Start the bot's main loop
-    bot.run(external_handlers=[ping_host_command])
+    # bot.run(external_handlers=[ping_host_command])
+    bot.run()
     
 if __name__ == '__main__':
     main()
