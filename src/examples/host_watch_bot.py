@@ -370,6 +370,7 @@ class HostWatchBot(TelegramBotFramework):
             user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
             job_name = f"ping_{ip_address}"
             
+            user_data[user_id][job_name] = user_data[user_id][job_name] if job_name in user_data[user_id] else {}
             user_data[user_id][job_name]['last_status'] = ping_result
             user_data[user_id][job_name]['http_ping_time'] = (datetime.datetime.now()).strftime("%H:%M")
             if not ping_result:
