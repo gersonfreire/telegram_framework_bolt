@@ -343,11 +343,13 @@ class HostWatchBot(TelegramBotFramework):
         
         try:
             # Ping logic here
+            import platform
             param = "-n 1" if platform.system().lower() == "windows" else "-c 1"
             response = os.system(f"ping {param} {ip_address}") # Returns 0 if the host is up, 1 if the host is down
             
             # send message just to the job owner user
             if response == 0:
+                # self.send_message_by_api(user_id, f"{ip_address} is up!") if show_success else None
                 self.send_message_by_api(user_id, f"{ip_address} is up!") if show_success else None
                 ping_result = True
             else:
@@ -362,7 +364,7 @@ class HostWatchBot(TelegramBotFramework):
                     await self.app.persistence.update_user_data(user_id, user_data[user_id])
                     await self.app.persistence.flush()
                 
-            self.self.logger.debug(f"Ping result for {ip_address}: {ping_result}")
+            self.logger.debug(f"Ping result for {ip_address}: {ping_result}")
                 
             # Add last status to ping list in user data
             user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
@@ -875,20 +877,22 @@ class HostWatchBot(TelegramBotFramework):
     def run(self):
         
         try:
-            self.app.add_handler(handler=CommandHandler("pingadd", self.ping_add), group=-1)
-            self.app.add_handler(handler=CommandHandler("pingdelete", self.ping_delete), group=-1)
-            self.app.add_handler(handler=CommandHandler("pinglist", self.ping_list), group=-1)  
-            self.app.add_handler(handler=CommandHandler("pinglog", self.ping_log), group=-1)
-            self.app.add_handler(handler=CommandHandler("pinghost", self.ping_host_command), group=-1)
-            self.app.add_handler(handler=CommandHandler("pinginterval", self.ping_interval), group=-1)
-            self.app.add_handler(handler=CommandHandler("pinghostport", self.ping_host_port_command), group=-1)  # Register the new command handler
-            self.app.add_handler(handler=CommandHandler("changepingport", self.change_ping_port_command), group=-1)  # Register the new command handler
-            self.app.add_handler(handler=CommandHandler("storecredentials", self.store_credentials), group=-1)  # Register the new command handler
-            self.app.add_handler(handler=CommandHandler("exec", self.execute_command, filters=filters.User(user_id=self.admins_owner)), group=-1)  # Register the new command handler
-            self.app.add_handler(handler=CommandHandler("ssh", self.execute_ssh_command, filters=filters.User(user_id=self.admins_owner)), group=-1)  # Register the new command handler
-            self.app.add_handler(handler=CommandHandler("listfailures", self.list_failures), group=-1)  # Register the new command handler
+            # from telegram.ext import CommandHandler
             
-            # super().run()
+            # self.app.add_handler(handler=CommandHandler("pingadd", self.ping_add), group=-1)
+            # self.app.add_handler(handler=CommandHandler("pingdelete", self.ping_delete), group=-1)
+            # self.app.add_handler(handler=CommandHandler("pinglist", self.ping_list), group=-1)  
+            # self.app.add_handler(handler=CommandHandler("pinglog", self.ping_log), group=-1)
+            # self.app.add_handler(handler=CommandHandler("pinghost", self.ping_host_command), group=-1)
+            # self.app.add_handler(handler=CommandHandler("pinginterval", self.ping_interval), group=-1)
+            # self.app.add_handler(handler=CommandHandler("pinghostport", self.ping_host_port_command), group=-1)  # Register the new command handler
+            # self.app.add_handler(handler=CommandHandler("changepingport", self.change_ping_port_command), group=-1)  # Register the new command handler
+            # self.app.add_handler(handler=CommandHandler("storecredentials", self.store_credentials), group=-1)  # Register the new command handler
+            # self.app.add_handler(handler=CommandHandler("exec", self.execute_command, filters=filters.User(user_id=self.admins_owner)), group=-1)  # Register the new command handler
+            # self.app.add_handler(handler=CommandHandler("ssh", self.execute_ssh_command, filters=filters.User(user_id=self.admins_owner)), group=-1)  # Register the new command handler
+            # self.app.add_handler(handler=CommandHandler("listfailures", self.list_failures), group=-1)  # Register the new command handler
+            
+            super().run([self.ping_host_command])
             
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -900,14 +904,13 @@ class HostWatchBot(TelegramBotFramework):
 def main():
 
     # Create an instance of the bot
-    bot = HostWatchBot()
-     
-    # bot.run()
-    
+    bot = HostWatchBot()    
     # bot = TelegramBotFramework()
     
     # Start the bot's main loop
-    bot.run(external_handlers=[bot.ping_host_command])
+    bot.run()
+    # bot.run(external_handlers=[bot.ping_host_command])
+    
     
 if __name__ == '__main__':
     main()
