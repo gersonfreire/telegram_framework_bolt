@@ -350,7 +350,7 @@ class HostWatchBot(TelegramBotFramework):
             # send message just to the job owner user
             if response == 0:
                 # self.send_message_by_api(user_id, f"{ip_address} is up!") if show_success else None
-                self.send_message_by_api(user_id, f"{ip_address} is up!") if show_success else None
+                await self.app.bot.send_message(chat_id=user_id, text= f"{ip_address} is up!")
                 ping_result = True
             else:
                 self.send_message_by_api(user_id, f"{ip_address} is down!")
@@ -383,7 +383,8 @@ class HostWatchBot(TelegramBotFramework):
             user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
                 
         except Exception as e:
-            self.send_message_by_api(self.bot_owner, f"An error occurred while pinging {ip_address}: {e}")
+            self.logger.error(f"An error occurred while pinging {ip_address}: {e}")
+            # self.send_message_by_api(self.bot_owner, f"An error occurred while pinging {ip_address}: {e}")
             
         return ping_result
 
