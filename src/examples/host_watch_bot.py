@@ -911,8 +911,7 @@ def main():
     
     # Start the bot's main loop
     bot.run()
-    # bot.run(external_handlers=[bot.ping_host_command])
-    
+    # bot.run(external_handlers=[bot.ping_host_command])   
     
 if __name__ == '__main__':
     main()
