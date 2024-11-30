@@ -46,46 +46,6 @@ from .util_watch import *
 
 import paramiko
 
-async def handle_echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Echoes the user message back to the user
-
-    Args:
-        update (Update): The update object
-        context (ContextTypes.DEFAULT_TYPE): The context object
-    """
-    
-    user_message = update.message.text
-    await update.message.reply_text(user_message)
-
-async def ping_host_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Check if a host is up or down.
-
-    Args:
-        update (Update): _description_
-        context (CallbackContext): _description_
-    """
-    
-    try:
-        # Extract the host name from the command parameters
-        host_name = context.args[0] if context.args else None
-        
-        if not host_name:
-            await update.message.reply_text("Please provide a host name to ping.")
-            return
-        
-        # Ping the host
-        ping_result = await HostWatchBot().ping_host(host_name, show_success=True, user_id=update.effective_user.id)
-        
-        # Send the result back to the user
-        # if ping_result:
-        #     await update.message.reply_text(f"{host_name} is up!")
-        # else:
-        #     await update.message.reply_text(f"{host_name} is down!")
-    
-    except Exception as e:
-        await update.message.reply_text(f"An error occurred: {e}")
-        # self.logger.error(f"Error in ping_host_command: {e}")
-
 class HostWatchBot(TelegramBotFramework):
     
     async def escape_markdown(self, text: str) -> str:
@@ -948,7 +908,7 @@ def main():
     # bot.app.add_handler(bot.app, handler=telegram.ext.CommandHandler("ping", ping_host_command), group=-1)
 
     # Start the bot's main loop
-    bot.run(external_handlers=[ping_host_command])
+    bot.run(external_handlers=[HostWatchBot().ping_host_command])
     # bot.run()
     
 if __name__ == '__main__':

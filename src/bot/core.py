@@ -1068,7 +1068,7 @@ class TelegramBotFramework:
 
         # Register the external handlers
         for handler in external_handlers:
-            app.add_handler(TelegramCommandHandler("echo", handler), group=-1)
+            app.add_handler(TelegramCommandHandler(handler.__name__, handler), group=-1)
 
         # Register the toggle command
         app.add_handler(TelegramCommandHandler('toggle_status', self.toggle_status_message, filters=filters.User(user_id=self.admin_users)))
