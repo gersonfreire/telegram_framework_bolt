@@ -900,13 +900,14 @@ class HostWatchBot(TelegramBotFramework):
 def main():
 
     # Create an instance of the bot
-    # handlerBot = HostWatchBot() 
-    # handlerBot.run()
+    bot = HostWatchBot()
+     
+    # bot.run()
     
-    bot = TelegramBotFramework()
+    # bot = TelegramBotFramework()
     
     # Start the bot's main loop
-    bot.run(external_handlers=[HostWatchBot().ping_host_command])
+    bot.run(external_handlers=[bot.ping_host_command])
     
 if __name__ == '__main__':
     main()
