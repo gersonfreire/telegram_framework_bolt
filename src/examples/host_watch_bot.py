@@ -905,11 +905,8 @@ def main():
     
     bot = TelegramBotFramework()
     
-    # bot.app.add_handler(bot.app, handler=telegram.ext.CommandHandler("ping", ping_host_command), group=-1)
-
     # Start the bot's main loop
     bot.run(external_handlers=[HostWatchBot().ping_host_command])
-    # bot.run()
     
 if __name__ == '__main__':
     main()
