@@ -599,7 +599,7 @@ class HostWatchBot(TelegramBotFramework):
                      
             if not has_jobs:
                 message = f"_No hosts monitored._{os.linesep}{os.linesep}_Usage: /pinglist <ip_address> <interval-in-seconds>_{os.linesep}_Example: `/pinglist`"
-                self.self.logger.info(message)  
+                self.logger.info(message)  
             
             else:
                 self.logger.info(message)
