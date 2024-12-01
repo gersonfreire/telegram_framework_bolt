@@ -63,3 +63,4 @@ pypí_update.bat
 pypiupdate.bat
 src/tools/remove_pypi.bat
 src/tools/remove_pypi.py
+src/tools/pypi_update.ps1
