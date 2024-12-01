@@ -177,21 +177,21 @@ class HostWatchBot(TelegramBotFramework):
     async def load_all_user_data(self):
         try:
             self.logger.info("Restoring jobs...")
-            await self.send_message_to_admins("Restoring jobs...")        
+            await self.send_message_to_admins(message="_Restoring jobs..._")        
       
             # Get all persisted jobs already added by all users
             user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
             
             if not user_data or len(user_data) == 0:
                 self.logger.info("No jobs found.")
-                await self.send_message_to_admins("No jobs found.")
+                await self.send_message_to_admins(message="No jobs found.")
                 return     
             
             for user_id, jobs_dic in user_data.items():
                 try:
                     log_message = f"_Restoring jobs for user_ `{user_id}`..."
                     self.logger.debug(log_message)
-                    await self.send_message_to_admins(log_message)
+                    await self.send_message_to_admins(message=log_message)
                     
                     # for each job item in user´s jobs dictionary, add a job to the job queue
                     for job_name, job_params in jobs_dic.items():
@@ -201,7 +201,7 @@ class HostWatchBot(TelegramBotFramework):
                             if job_name and job_name.startswith('ping_'):
                                 
                                 self.logger.debug(f"Adding job {job_name} for user {user_id}...")
-                                await self.app.bot.send_message(self.bot_owner, f"_Adding job_ `{job_name}` _for user_ `{user_id}`...") if user_id else None
+                                await self.send_message_to_admins(message=f"_Adding job_ `{job_name}` _for user_ `{user_id}`...") if user_id else None
                                 
                                 ip_address = job_params['ip_address']
                                 interval = job_params['interval']
@@ -218,15 +218,15 @@ class HostWatchBot(TelegramBotFramework):
                                 
                         except Exception as e:
                             self.logger.error(f"Failed to add job {job_name} for user {user_id}: {e}")
-                            self.send_message_by_api(self.bot_owner, f"Failed to add job {job_name} for user {user_id}: {e}")
+                            self.send_message_to_admins(message=f"Failed to add job {job_name} for user {user_id}: {e}")
                         
                 except Exception as e:
                     self.logger.error(f"Failed to restore job {user_id}: {e}")
-                    self.send_message_by_api(self.bot_owner, f"Failed to restore job {user_id}: {e}") 
+                    self.send_message_to_admins(message=f"Failed to restore job {user_id}: {e}") 
             
         except Exception as e:
             self.logger.error(f"Failed to restore jobs: {e}")
-            self.send_message_by_api(self.bot_owner, f"Failed to restore jobs: {e}")           
+            self.send_message_to_admins(message=f"Failed to restore jobs: {e}")           
     
     def __init__(self, token=None, *args, **kwargs):
 

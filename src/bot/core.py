@@ -50,7 +50,7 @@ def get_config_path(config_filename: str = "config.yml") -> Path:
 
 class TelegramBotFramework:
 
-    async def send_message_to_admins(self, context: CallbackContext=None, message: str=None) -> None:
+    async def send_message_to_admins(self, context: CallbackContext=None, message: str=None, parse_mode = ParseMode.MARKDOWN) -> None:
         """Send a message to all admin users.
 
         Args:
@@ -61,9 +61,9 @@ class TelegramBotFramework:
         for chat_id in self.admin_users:
             try:
                 if context and message:
-                    await context.bot.send_message(chat_id=chat_id, text=message)
+                    await context.bot.send_message(chat_id=chat_id, text=message, parse_mode=parse_mode)
                 elif message:
-                    await self.app.bot.send_message(chat_id=chat_id, text=message)
+                    await self.app.bot.send_message(chat_id=chat_id, text=message, parse_mode=parse_mode)
                 
             except Exception as e:
                 self.logger.error(f"Failed to send message to admin {chat_id}: {e}")
