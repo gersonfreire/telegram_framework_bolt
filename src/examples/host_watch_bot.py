@@ -352,11 +352,10 @@ class HostWatchBot(TelegramBotFramework):
             
             # send message just to the job owner user
             if response == 0:
-                # self.send_message_by_api(user_id, f"{ip_address} is up!") if show_success else None
                 await self.app.bot.send_message(chat_id=user_id, text= f"{ip_address} is up!")
                 ping_result = True
             else:
-                self.send_message_by_api(user_id, f"{ip_address} is down!")
+                await self.app.bot.send_message(chat_id=user_id, text= f"{ip_address} is down!")
                 
                 # Set the last_fail_date to the current date and time
                 current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
