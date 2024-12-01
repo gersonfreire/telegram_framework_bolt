@@ -22,8 +22,12 @@ def run_command(command, shell=False):
 
 def main():
     # Load environment variables from .env file
-    load_dotenv('src\tools\.env', override=True)
-    pypi_token = os.getenv('PYPI_API_TOKEN')
+    if load_dotenv('src\tools\.env', override=True):
+        print("Environment variables loaded successfully")
+        pypi_token = os.getenv('PYPI_API_TOKEN')
+    else:
+        print("Failed to load environment variables")
+        return
 
     # Activate the virtual environment
     activate_script = activate_virtualenv()
