@@ -527,7 +527,6 @@ class HostWatchBot(TelegramBotFramework):
             
             # header of monitored hosts list in case of bot owner
             if effective_user_id == self.bot_owner:
-                # message = f"_Active monitored host:_{os.linesep}`pi hs ht p     user-id   interv next last host`{os.linesep}"
                 message = f"_Active monitored host:_{os.linesep}`pi p     user-id   interv next last host`{os.linesep}"
                 
             all_user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
@@ -894,7 +893,7 @@ class HostWatchBot(TelegramBotFramework):
             # self.app.add_handler(handler=CommandHandler("ssh", self.execute_ssh_command, filters=filters.User(user_id=self.admins_owner)), group=-1)  # Register the new command handler
             # self.app.add_handler(handler=CommandHandler("listfailures", self.list_failures), group=-1)  # Register the new command handler
             
-            super().run([self.ping_host_command, self.ping_add, self.ping_delete, self.ping_list, self.ping_log, self.ping_interval, self.change_ping_port_command, self.store_credentials, self.execute_command, self.execute_ssh_command, self.list_failures])
+            super().run([self.ping_list, self.ping_host_command, self.ping_add, self.ping_delete, self.ping_log, self.ping_interval, self.change_ping_port_command, self.store_credentials, self.execute_command, self.execute_ssh_command, self.list_failures])
             
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
