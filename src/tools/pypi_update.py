@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys
-from dotenv import load_dotenv
+from dotenv import load_dotenv 
 
 def activate_virtualenv():
     """Activate the virtual environment."""
