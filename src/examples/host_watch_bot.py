@@ -526,7 +526,7 @@ class HostWatchBot(TelegramBotFramework):
             message = f"_Active monitored host:_{os.linesep}`pi p     interv next last host`{os.linesep}"
             
             # header of monitored hosts list in case of bot owner
-            if effective_user_id == self.bot_owner:
+            if effective_user_id in self.admin_users:
                 message = f"_Active monitored host:_{os.linesep}`pi p     user-id   interv next last host`{os.linesep}"
                 
             all_user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
