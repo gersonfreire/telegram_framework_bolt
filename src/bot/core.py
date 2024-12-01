@@ -261,6 +261,8 @@ class TelegramBotFramework:
         
         # Default value for send_status_interval
         self.send_status_interval = 60  # Default value (1 minute)
+        
+        self.external_post_init = external_post_init
 
     def _load_status_message_enabled(self) -> bool:
         """Load the status_message_enabled value from persistent data."""
@@ -980,7 +982,10 @@ class TelegramBotFramework:
             # Add job to send status message every 30 minutes
             job_queue: JobQueue = self.app.job_queue
             job_queue.run_repeating(self.send_status_message, interval=self.send_status_interval, first=0)    
-            self.job_queue = job_queue                 
+            self.job_queue = job_queue             
+                        
+            if self.external_post_init:
+                await self.external_post_init()                
                       
         except Exception as e:
             self.logger.error(f"Error during post-initialization: {e}")
