@@ -177,21 +177,21 @@ class HostWatchBot(TelegramBotFramework):
     async def load_all_user_data(self):
         try:
             self.logger.info("Restoring jobs...")
-            await self.app.bot.send_message(self.bot_owner, "_Restoring jobs..._") if self.bot_owner else None            
+            await self.send_message_to_admins("Restoring jobs...")        
       
             # Get all persisted jobs already added by all users
             user_data = await self.app.persistence.get_user_data() if self.app.persistence else {}
             
             if not user_data or len(user_data) == 0:
                 self.logger.info("No jobs found.")
-                await self.app.bot.send_message(self.bot_owner, "_No jobs found to restore._") if self.bot_owner else None
+                await self.send_message_to_admins("No jobs found.")
                 return     
             
             for user_id, jobs_dic in user_data.items():
                 try:
                     log_message = f"_Restoring jobs for user_ `{user_id}`..."
                     self.logger.debug(log_message)
-                    await self.app.bot.send_message(self.bot_owner, log_message) if user_id else None
+                    await self.send_message_to_admins(log_message)
                     
                     # for each job item in user´s jobs dictionary, add a job to the job queue
                     for job_name, job_params in jobs_dic.items():
