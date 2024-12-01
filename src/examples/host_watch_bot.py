@@ -26,6 +26,7 @@ __todo__ = """ """
 
 import datetime
 import os
+import random
 from sys import platform
 from warnings import filters
 from telegram import Update
@@ -431,7 +432,7 @@ class HostWatchBot(TelegramBotFramework):
                 user_id=user_id, chat_id=user_id
             )
             
-            self.self.logger.debug(f"Adding job {job_name} for user {user_id}...")
+            self.logger.debug(f"Adding job {job_name} for user {user_id}...")
             
             # If the user does not have any jobs yet, create a new dictionary for the user with the new job. 
             self.jobs[user_id] = self.jobs[user_id] if user_id in self.jobs else {user_id: {}}
@@ -460,7 +461,7 @@ class HostWatchBot(TelegramBotFramework):
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename())[1]
-            self.self.logger.error(f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}")
+            self.logger.error(f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}")
             
             await update.message.reply_text(f"An error occurred: {e}", parse_mode=None)
 
@@ -495,13 +496,13 @@ class HostWatchBot(TelegramBotFramework):
                 job = self.app.job_queue.get_jobs_by_name(job_name)[0]
                 job.schedule_removal()
             except Exception as e:
-                self.self.logger.error(f"No job found with name {job_name}")            
+                self.logger.error(f"No job found with name {job_name}")            
             
             try:
                 # remove this key from user data
                 context.user_data.pop(job_name) if job_name in context.user_data else None
             except Exception as e:
-                self.self.logger.error(f"Failed to remove job {job_name} from user data: {e}")
+                self.logger.error(f"Failed to remove job {job_name} from user data: {e}")
             
             await update.message.reply_text(f"Host {ip_address} deleted.", parse_mode=None)
         
@@ -563,7 +564,7 @@ class HostWatchBot(TelegramBotFramework):
                                 job = self.app.job_queue.get_jobs_by_name(job_name)[0]                        
                                 next_time = (job.next_t - datetime.timedelta(hours=3)).strftime("%H:%M") if job.next_t else ""
                             except IndexError:
-                                self.self.logger.error(f"No job found with name {job_name}")
+                                self.logger.error(f"No job found with name {job_name}")
                             
                             interval = user_data[job_name]['interval'] if job_name in user_data else None
                             ip_address = user_data[job_name]['ip_address'] if job_name in user_data else None
@@ -593,10 +594,10 @@ class HostWatchBot(TelegramBotFramework):
                             
                         except Exception as e:
                             tb = traceback.format_exc()
-                            self.self.logger.error(f"An error occurred while listing job {job_name} for user {job_owner_id}: {e}{os.linesep}{tb}")
+                            self.logger.error(f"An error occurred while listing job {job_name} for user {job_owner_id}: {e}{os.linesep}{tb}")
                             
                 except Exception as e:
-                    self.self.logger.error(f"An error occurred while processing user data for user {job_owner_id}: {e}")
+                    self.logger.error(f"An error occurred while processing user data for user {job_owner_id}: {e}")
                      
             if not has_jobs:
                 message = f"_No hosts monitored._{os.linesep}{os.linesep}_Usage: /pinglist <ip_address> <interval-in-seconds>_{os.linesep}_Example: `/pinglist`"
