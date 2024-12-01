@@ -625,7 +625,7 @@ class HostWatchBot(TelegramBotFramework):
             context.user_data["show_success"] = show_success
             
             status = "enabled" if show_success else "disabled"
-            await update.message.reply_text(f"_Monitoring log is now_ `{status}`.")
+            await update.message.reply_text(f"_Monitoring log is now_ `{status}`.", parse_mode=ParseMode.MARKDOWN)
             
         except Exception as e:
             await update.message.reply_text(f"An error occurred: {e}", parse_mode=None)
@@ -873,7 +873,7 @@ class HostWatchBot(TelegramBotFramework):
                     self.logger.error(f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}")                    
                     continue
             
-            await update.message.reply_text(message)
+            await update.message.reply_text(message, parse_mode=ParseMode.MARKDOWN)
         
         except Exception as e:
             await update.message.reply_text(f"An error occurred: {e}")
