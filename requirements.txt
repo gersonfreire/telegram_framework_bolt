@@ -9,3 +9,4 @@ paramiko
 # pip install paramiko
 
 python-telegram-bot[job-queue]
+requests
