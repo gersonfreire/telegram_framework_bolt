@@ -4,8 +4,10 @@
 @REM Go to current directory
 cd %~dp0
 
+cd ..\..\
+
 @REM Activate the virtual environment and run the bot
 call .venv\Scripts\Activate
 
 @REM Run the bot script repassing the arguments
-python hostwatch.py %*
+python -m src.examples.host_watch_bot %*
