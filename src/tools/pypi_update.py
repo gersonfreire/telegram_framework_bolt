@@ -17,8 +17,14 @@ def activate_virtualenv():
 
 def run_command(command, shell=False):
     """Run a command and check for errors."""
-    result = subprocess.run(command, shell=shell, check=True, text=True)
-    return result
+    try:
+        result = subprocess.run(command, shell=shell, check=True, text=True)
+        return result
+    except subprocess.CalledProcessError as e:
+        print(f"Command '{command}' failed with return code {e.returncode}")
+        print(f"Output: {e.output}")
+        # raise
+        return None
 
 def main():
     # Load environment variables from .env file in the current script folder    
@@ -38,17 +44,25 @@ def main():
 
     # Generate the source distribution and built distribution
     print("Running setup.py")
-    run_command([sys.executable, 'setup.py', 'sdist', 'bdist_wheel'])
+    result = run_command([sys.executable, 'setup.py', 'sdist', 'bdist_wheel'])
+    if result is None:
+        print("Failed to generate the distribution files")
+        return
 
     # Upload the package to PyPI
     print("Uploading to PyPI")
     if not pypi_token:
         raise EnvironmentError("PYPI_API_TOKEN environment variable not set")
 
-    run_command([
+    result = run_command([
         'twine', 'upload', '--repository-url', 'https://upload.pypi.org/legacy/', 'dist/*',
         '--non-interactive', '--username', '__token__', '--password', pypi_token
     ])
+    if result is None:
+        print("Failed to upload the package to PyPI")
+        return
+    
+    print("Package uploaded successfully")
 
 if __name__ == '__main__':
     main()
