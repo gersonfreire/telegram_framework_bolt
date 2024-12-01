@@ -61,3 +61,5 @@ src/examples/remove_pypi.py
 src/examples/remove_pypi.sh
 pypí_update.bat
 pypiupdate.bat
+src/tools/remove_pypi.bat
+src/tools/remove_pypi.py
