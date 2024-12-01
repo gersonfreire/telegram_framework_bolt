@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 from dotenv import load_dotenv 
+import shutil
 
 def activate_virtualenv():
     """Activate the virtual environment."""
@@ -41,6 +42,15 @@ def main():
         run_command(f'call {activate_script}', shell=True)
     else:
         run_command(f'source {activate_script}', shell=True)
+        
+    # Delete folder dist from project
+    print("Deleting dist folder")
+    try:
+        shutil.rmtree('dist', ignore_errors=True)
+        print("dist folder deleted successfully")
+    except Exception as e:
+        print(f"Failed to delete dist folder: {e}")
+        return 
 
     # Generate the source distribution and built distribution
     print("Running setup.py")
