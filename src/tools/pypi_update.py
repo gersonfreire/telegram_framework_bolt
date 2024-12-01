@@ -21,8 +21,8 @@ def run_command(command, shell=False):
     return result
 
 def main():
-    # Load environment variables from .env file
-    if load_dotenv('src\tools\.env', override=True):
+    # Load environment variables from .env file in the current script folder    
+    if load_dotenv(os.path.join(os.path.dirname(__file__), '.env'), override=True):
         print("Environment variables loaded successfully")
         pypi_token = os.getenv('PYPI_API_TOKEN')
     else:
