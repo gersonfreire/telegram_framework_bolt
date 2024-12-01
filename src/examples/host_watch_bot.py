@@ -583,7 +583,7 @@ class HostWatchBot(TelegramBotFramework):
                             last_fail_date = user_data[job_name]['last_fail_date'] if job_name in user_data and 'last_fail_date' in user_data[job_name] else None
                             
                             interval = f"{interval}s" if interval else None
-                            if effective_user_id == self.bot_owner:
+                            if effective_user_id in self.admin_users:
                                 message += f"{ping_status}{check_port_status}`{checked_port:<5}``{job_owner:<10}` `{interval:<6}` `{next_time}` `{http_ping_time}` {markdown_link}{os.linesep}"
                             else:
                                 message += f"{ping_status}{check_port_status}`{checked_port:<5}``{interval:<6}` `{next_time}` `{http_ping_time}` {markdown_link}{os.linesep}"
