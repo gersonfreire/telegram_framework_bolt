@@ -22,7 +22,8 @@ def run_command(command, shell=False):
 
 def main():
     # Load environment variables from .env file
-    load_dotenv('.env')
+    load_dotenv('src\tools\.env', override=True)
+    pypi_token = os.getenv('PYPI_API_TOKEN')
 
     # Activate the virtual environment
     activate_script = activate_virtualenv()
@@ -37,7 +38,6 @@ def main():
 
     # Upload the package to PyPI
     print("Uploading to PyPI")
-    pypi_token = os.getenv('PYPI_API_TOKEN')
     if not pypi_token:
         raise EnvironmentError("PYPI_API_TOKEN environment variable not set")
 
