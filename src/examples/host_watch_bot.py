@@ -29,6 +29,7 @@ import os
 from sys import platform
 from warnings import filters
 from telegram import Update
+from telegram.constants import ParseMode
 import telegram
 from telegram.ext import CallbackContext
 # import hostwatch.__init__
@@ -605,7 +606,7 @@ class HostWatchBot(TelegramBotFramework):
                 self.logger.info(message)
                 message += f"{os.linesep}_Total of monitored hosts: {len(jobs)}_"        
                             
-            await update.message.reply_text(text=message) 
+            await update.message.reply_text(text=message, parse_mode=ParseMode.MARKDOWN) 
                     
         except Exception as e:
             await update.message.reply_text(f"An error occurred: {e}", parse_mode=None)
