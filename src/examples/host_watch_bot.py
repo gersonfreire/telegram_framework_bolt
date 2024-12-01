@@ -352,7 +352,7 @@ class HostWatchBot(TelegramBotFramework):
             
             # send message just to the job owner user
             if response == 0:
-                await self.app.bot.send_message(chat_id=user_id, text= f"{ip_address} is up!")
+                await self.app.bot.send_message(chat_id=user_id, text= f"{ip_address} is up!") if show_success else None
                 ping_result = True
             else:
                 await self.app.bot.send_message(chat_id=user_id, text= f"{ip_address} is down!")
