@@ -225,7 +225,7 @@ class TelegramBotFramework:
             
         return wrapper
     
-    def __init__(self, token: str = None, admin_users: List[int] = [], config_filename: str = get_config_path(), env_file: Path = None):     
+    def __init__(self, token: str = None, admin_users: List[int] = [], config_filename: str = get_config_path(), env_file: Path = None, external_post_init = None):     
         
         self.version = __version__   
         
