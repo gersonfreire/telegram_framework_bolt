@@ -251,11 +251,10 @@ class HostWatchBot(TelegramBotFramework):
             host_address = callback_context.job.data
             
             # Get the current value of the show_success flag from context user data
-            # show_success = await self.get_user_data(callback_context.job.user_id, "show_success", False)
             show_success = callback_context.user_data["show_success"] if "show_success" in callback_context.user_data else False
             
             if show_success:
-                self.send_message_by_api(user_id, f"Pinging {host_address}...") if show_success else None
+                await self.app.bot.send_message(chat_id=user_id, text=f"Pinging {host_address}...", parse_mode=ParseMode.MARKDOWN)
                 
             ping_result = await self.ping_host(host_address, show_success=show_success, user_id=user_id)
             
@@ -278,13 +277,15 @@ class HostWatchBot(TelegramBotFramework):
             callback_context.user_data[job_name]['port_status'] = port_result
             if not port_result:
                 callback_context.user_data[job_name]['last_fail_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")                
-                self.send_message_by_api(callback_context.job.user_id, f"{host_address}:{port} is down!")
+                # self.send_message_by_api(callback_context.job.user_id, f"{host_address}:{port} is down!")
+                await self.app.bot.send_message(chat_id=user_id, text= f"{host_address}:{port} is down!", parse_mode=ParseMode.MARKDOWN)
+                
             
             # Log the result of the ping
             self.logger.debug(f"Ping result for {host_address}: {ping_result} {https_ping_result} {port_result}")
             
         except Exception as e:
-            self.send_message_by_api(self.bot_owner, f"An error occurred: {e}") 
+            await self.admin_users.send_message(f"An error occurred: {e}")
     
     async def http_ping(self, ip_address, debug_status=True, user_id=None, http_type='https'):
         
