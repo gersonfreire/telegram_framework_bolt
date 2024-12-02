@@ -8,7 +8,7 @@ overrides the initialize_handlers method to add a help command handler.
 This version is inspired on and more elaborated than host_monitor because controls each host by user.
 """
 
-__version__ = '0.6.2 Failure History'
+__version__ = '0.6.3 '
 
 __changelog__ = """
 DONE: 
@@ -347,7 +347,7 @@ class HostWatchBot(TelegramBotFramework):
         try:
             # Ping logic here
             import platform
-            param = "-n 1 -w 3" if platform.system().lower() == "windows" else "-c 1"
+            param = "-n 3 " if platform.system().lower() == "windows" else "-c 1"
             response = os.system(f"ping {param} {ip_address}") # Returns 0 if the host is up, 1 if the host is down
             
             # send message just to the job owner user
