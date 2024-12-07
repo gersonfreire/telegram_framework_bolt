@@ -896,7 +896,7 @@ class HostWatchBot(TelegramBotFramework):
             # self.app.add_handler(handler=CommandHandler("ssh", self.execute_ssh_command, filters=filters.User(user_id=self.admins_owner)), group=-1)  # Register the new command handler
             # self.app.add_handler(handler=CommandHandler("listfailures", self.list_failures), group=-1)  # Register the new command handler
             
-            super().run([self.ping_list, self.ping_host_command, self.ping_add, self.ping_delete, self.ping_log, self.ping_interval, self.change_ping_port_command, self.store_credentials, self.execute_command, self.execute_ssh_command, self.list_failures])
+            super().run([self.ping_list, self.ping_host_command, self.ping_add, self.ping_delete, self.ping_log, self.ping_interval, self.change_ping_port_command, self.ping_host_port_command, self.store_credentials, self.execute_command, self.execute_ssh_command, self.list_failures])
             
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
