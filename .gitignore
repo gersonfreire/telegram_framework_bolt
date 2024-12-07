@@ -66,3 +66,5 @@ src/tools/remove_pypi.py
 src/tools/pypi_update.ps1
 src/examples/OutSystemsBot_bot_data
 src/examples/HostWatchBot.pickle
+src/examples/OutSystemsBot_bot_data.ok
+src/examples/OutSystemsBot.pickle
