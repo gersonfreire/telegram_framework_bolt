@@ -1,7 +1,8 @@
 
+
 Create an entire python framework to build telegram bots that offers embedded basic commands described in this bot_usage.md file uploaded here plus users management, payment and balance management for this users and settings management.
 
-You must implement a python super class which inherits from  base classes of python-telebra-bot library.
+You must implement a python super class which inherits from  base classes of python-telebra-bot latest version library.
 
 This framework must implement by default the embeded bot persistence which sotres all state of the bot that will be autmatically reloaded at bot start, included bot users data as each user name, id and balance. All embeded commands must be automatically inherited when the programmer creates a script from this framework, as simple as instantiting the main class like this single line of code: bot = MyTelegramFramework().
 
