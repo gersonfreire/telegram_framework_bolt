@@ -44,6 +44,8 @@ class CommandHandler:
                 # Sort the global_handlers dictionary by handler['command']
                 for user_id in global_handlers:
                     global_handlers[user_id] = sorted(global_handlers[user_id], key=lambda x: x['command'])
+                    
+                all_commands: Dict[str, CommandHandler] = {}
                         
                 for user_id, handlers in global_handlers.items():
                     if user_id == 0 or user_id == update.effective_user.id:
@@ -59,6 +61,8 @@ class CommandHandler:
                                         help_text_from_handlers += f"👑 /{handler['command']} - {handler['handler_info']['docstring'][0]}\n"
                                     else:
                                         help_text_from_handlers += f"/{handler['command']} - {handler['handler_info']['docstring'][0]}\n"
+                                        
+                                    all_commands[handler['command']] = handler['handler_info']['docstring'][0]
                                     
                             except Exception as e:
                                 exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -90,7 +94,7 @@ class CommandHandler:
                     telegram.BotCommand(command=cmd, description=handler['docstring'][0])
                     for cmd, handler in user_commands_from_handlers.items()
                 ]
-                await bot.app.bot.set_my_commands(user_commands)
+                # await bot.app.bot.set_my_commands(user_commands)
                 # await self.bot.set_my_commands(self.common_users_commands)
                 
                 # if the user is an admin, insert the admin commands into the telegram menu command
@@ -102,7 +106,7 @@ class CommandHandler:
                     # await bot.app.bot.set_my_commands(new_admin_commands, scope={'type': 'chat', 'chat_id': bot.admin_users})
                     # await self.application.bot.set_my_commands(self.all_commands, scope={'type': 'chat', 'chat_id': admin_id})
                 
-                checked_commands = await bot.app.bot.get_my_commands()
+                # checked_commands = await bot.app.bot.get_my_commands()
 
                 # TODO: wait for stable version to be aproved and remove the commented lines
                 # Legacy: using the commands dictionary to return the help text
