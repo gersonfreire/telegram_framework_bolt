@@ -1042,7 +1042,7 @@ class TelegramBotFramework:
         # get main script path folder
         main_script_path = str(get_main_script_path().parent)
         self.logger.debug(f"The main script folder path is: {main_script_path}")
-        persistence = PicklePersistence(filepath=f'{main_script_path}{os.sep}{bot_username}_bot_data', update_interval=2)
+        persistence = PicklePersistence(filepath=f'{main_script_path}{os.sep}{bot_username}_bot_data', update_interval=10)
 
         # app = Application.builder().token(self.token).persistence(persistence).post_init(post_init=self.post_init).post_stop(post_stop=self.post_stop).post_shutdown(post_shutdown=self.post_shutdown).build()
         app = Application.builder().token(self.token).persistence(persistence).post_init(post_init=self.post_init).post_stop(post_stop=self.post_stop).post_shutdown(post_shutdown=self.post_shutdown).job_queue(JobQueue()).build()
@@ -1081,7 +1081,7 @@ class TelegramBotFramework:
 
         # Register the external handlers
         for handler in external_handlers:
-            app.add_handler(TelegramCommandHandler(handler.__name__, handler), group=-1)
+            app.add_handler(TelegramCommandHandler(handler.__name__, handler, filters=filters.User(user_id=self.admin_users)), group=-1)
 
         # Register the toggle command
         app.add_handler(TelegramCommandHandler('toggle_status', self.toggle_status_message, filters=filters.User(user_id=self.admin_users)))
