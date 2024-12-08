@@ -134,7 +134,12 @@ To deploy the bot, you can use any cloud service that supports Python applicatio
 
 ## Examples
 
-In folder ` src\examples` there is a couple of examples which is under construction like this framework, but the `host_watch_bot.py `sample is becoming interesting and there is a complete explaining of usage in this document here: [usage of host_watch_bot](src\examples\README.md)
+In folder ` src\examples` there is a couple of examples which is under construction like this framework, but the `host_watch_bot.py `sample is becoming interesting.
+
+This bot provides a powerful way to monitor hosts and manage various tasks through Telegram. Make sure to familiarize yourself with the commands and their usage to get the most out of your experience!
+
+For further assistance, refer to the [bot usage guide](src/examples/bot_usage.md) for more detailed information about the bot's features and setup.
+
 
 ## Contributing
 
