@@ -92,7 +92,7 @@ class CommandHandler:
                 ]
                 await bot.app.bot.set_my_commands(new_commands)
                 
-                # new_commands = await bot.app.bot.get_my_commands()
+                new_commands = await bot.app.bot.get_my_commands()
 
                 # TODO: wait for stable version to be aproved and remove the commented lines
                 # Legacy: using the commands dictionary to return the help text
