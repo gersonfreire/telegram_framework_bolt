@@ -132,6 +132,10 @@ To deploy the bot, you can use any cloud service that supports Python applicatio
    heroku open
    ```
 
+## Examples
+
+In folder ` src\examples` there is a couple of examples which is under construction like this framework, but the `host_watch_bot.py `sample is becoming interesting and there is a complete explaining of usage in this document here: [usage of host_watch_bot](src\examples\README.md)
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
