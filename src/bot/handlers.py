@@ -99,7 +99,7 @@ class CommandHandler:
                         telegram.BotCommand(command=cmd.command, description=cmd.description)
                         for cmd in admin_commands
                     ]
-                    await bot.app.bot.set_my_commands(new_admin_commands, scope={'type': 'chat', 'chat_id': bot.admin_users})
+                    # await bot.app.bot.set_my_commands(new_admin_commands, scope={'type': 'chat', 'chat_id': bot.admin_users})
                     # await self.application.bot.set_my_commands(self.all_commands, scope={'type': 'chat', 'chat_id': admin_id})
                 
                 checked_commands = await bot.app.bot.get_my_commands()
@@ -122,7 +122,7 @@ class CommandHandler:
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            error_message = f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {e}"
+            error_message = f"Error getting user data in {fname} at line {exc_tb.tb_lineno}: {str(e)}"
             self.logger.error(error_message)               
             await update.message.reply_text(error_message, parse_mode=None)           
             
