@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 from typing import TYPE_CHECKING
@@ -9,10 +10,11 @@ if TYPE_CHECKING:
     from .core import TelegramBotFramework
 
 class CommandHandler:
-    def __init__(self, name: str, description: str, response_template: str):
+    def __init__(self, name: str, description: str, response_template: str) -> None:
         self.name = name
         self.description = description
         self.response_template = response_template
+        self.logger = logging.getLogger(__name__)
 
     async def get_response(self, bot: 'TelegramBotFramework', update: telegram.Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         """Generic command handler to return a response based on the command name
@@ -45,7 +47,10 @@ class CommandHandler:
                 for user_id in global_handlers:
                     global_handlers[user_id] = sorted(global_handlers[user_id], key=lambda x: x['command'])
                     
-                all_commands: Dict[str, CommandHandler] = {}
+                all_commands = [
+                    # (f"/{cmd}", handler.description)
+                    # for cmd, handler in self.commands.items()
+                ]
                         
                 for user_id, handlers in global_handlers.items():
                     if user_id == 0 or user_id == update.effective_user.id:
@@ -62,7 +67,7 @@ class CommandHandler:
                                     else:
                                         help_text_from_handlers += f"/{handler['command']} - {handler['handler_info']['docstring'][0]}\n"
                                         
-                                    all_commands[handler['command']] = handler['handler_info']['docstring'][0]
+                                    all_commands.append(telegram.BotCommand(command=handler['command'], description=handler['handler_info']['docstring'][0]))
                                     
                             except Exception as e:
                                 exc_type, exc_obj, exc_tb = sys.exc_info()
