@@ -95,6 +95,7 @@ class CommandHandler:
                     for cmd, handler in user_commands_from_handlers.items()
                 ]
                 # await bot.app.bot.set_my_commands(user_commands)
+                await bot.app.bot.set_my_commands(all_commands)
                 # await self.bot.set_my_commands(self.common_users_commands)
                 
                 # if the user is an admin, insert the admin commands into the telegram menu command
@@ -106,7 +107,7 @@ class CommandHandler:
                     # await bot.app.bot.set_my_commands(new_admin_commands, scope={'type': 'chat', 'chat_id': bot.admin_users})
                     # await self.application.bot.set_my_commands(self.all_commands, scope={'type': 'chat', 'chat_id': admin_id})
                 
-                # checked_commands = await bot.app.bot.get_my_commands()
+                checked_commands = await bot.app.bot.get_my_commands()
 
                 # TODO: wait for stable version to be aproved and remove the commented lines
                 # Legacy: using the commands dictionary to return the help text
