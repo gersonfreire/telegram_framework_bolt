@@ -6,7 +6,7 @@ You must implement a python super class which inherits from  base classes of pyt
 
 This framework must implement by default the embeded bot persistence which sotres all state of the bot that will be autmatically reloaded at bot start, included bot users data as each user name, id and balance. All embeded commands must be automatically inherited when the programmer creates a script from this framework, as simple as instantiting the main class like this single line of code: bot = MyTelegramFramework().
 
-Embed also a command to schedule tasks
+Embed also a command to schedule tasks and a plugin system that allows the framework to loads automatically new command handlers from external python files 
 
 Please use the native persistence already exists in python-telegram-bot if not please adjust all code to use the Application.builder().persistence embeded which is a pickle persistence
 
