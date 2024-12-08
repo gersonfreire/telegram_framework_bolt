@@ -83,7 +83,7 @@ class CommandHandler:
                 
                 # TODO: clear telegram command menu and insert the commands from the handlers
                 # Clear the current command menu
-                await bot.app.bot.delete_my_commands()
+                # await bot.app.bot.delete_my_commands()
 
                 # Insert the commands from the handlers into the telegram menu command
                 new_commands = [
