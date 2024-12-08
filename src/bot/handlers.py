@@ -80,6 +80,20 @@ class CommandHandler:
                 )
 
                 commands_list += "\n" + registered_commands
+                
+                # TODO: clear telegram command menu and insert the commands from the handlers
+                # Clear the current command menu
+                await bot.app.bot.delete_my_commands()
+
+                # Insert the commands from the handlers
+                for user_id, handlers in global_handlers.items():
+                    if user_id == 0 or user_id == update.effective_user.id:
+                        for handler in handlers:
+                            await bot.app.bot.set_my_commands(
+                                commands=[telegram.BotCommand(handler['command'], handler['handler_info']['docstring'][0])],
+                                scope=telegram.BotCommandScopeChat(chat_id=update.effective_chat.id)
+                            )
+                
 
                 # TODO: wait for stable version to be aproved and remove the commented lines
                 # Legacy: using the commands dictionary to return the help text
