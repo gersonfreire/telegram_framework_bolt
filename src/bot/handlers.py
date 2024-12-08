@@ -100,7 +100,7 @@ class CommandHandler:
                     for cmd, handler in user_commands_from_handlers.items()
                 ]
                 # await bot.app.bot.set_my_commands(user_commands)
-                await bot.app.bot.set_my_commands(all_commands)
+                await bot.app.bot.set_my_commands(all_commands, scope={'type': 'chat', 'chat_id': update.effective_user.id})
                 # await self.bot.set_my_commands(self.common_users_commands)
                 
                 # if the user is an admin, insert the admin commands into the telegram menu command
