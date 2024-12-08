@@ -85,14 +85,12 @@ class CommandHandler:
                 # Clear the current command menu
                 await bot.app.bot.delete_my_commands()
 
-                # # Insert the commands from the handlers
-                # for user_id, handlers in global_handlers.items():
-                #     if user_id == 0 or user_id == update.effective_user.id:
-                #         for handler in handlers:
-                #             await bot.app.bot.set_my_commands(
-                #                 commands=[telegram.BotCommand(handler['command'], handler['handler_info']['docstring'][0])],
-                #                 scope=telegram.BotCommandScopeChat(chat_id=update.effective_chat.id)
-                #             )
+                # Insert the commands from the handlers into the telegram menu command
+                new_commands = [
+                    telegram.BotCommand(command=cmd, description=handler['docstring'][0])
+                    for cmd, handler in user_commands_from_handlers.items()
+                ]
+                await bot.app.bot.set_my_commands(new_commands)
                 
                 # new_commands = await bot.app.bot.get_my_commands()
 
